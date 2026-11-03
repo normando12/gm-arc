@@ -5,7 +5,10 @@ export function DawnBackground() {
       <div className="cockpit-nebula" />
       <div className="cockpit-glow" />
       <div className="cockpit-planet" role="img" aria-label="Planet Earth" />
-      <div className="cockpit-ring" />
+      <div className="cockpit-horizon" />
+      <div className="cockpit-rail cockpit-rail--left" />
+      <div className="cockpit-rail cockpit-rail--right" />
+      <div className="cockpit-floor" />
       <div className="cockpit-vignette" />
     </div>
   );
