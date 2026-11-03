@@ -27,10 +27,7 @@ export default function Home() {
       </main>
 
       <footer className="site-footer">
-        <span className="mark-n" aria-hidden>
-          N
-        </span>
-        <span>Inspired by gm.ink · built for Arc · v1 is GM and GM+ only</span>
+        <span>Built on Arc for the community</span>
       </footer>
     </div>
   );
