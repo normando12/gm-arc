@@ -13,7 +13,6 @@ import {
 import { isAddress } from "viem";
 import { arcGmAbi } from "@/lib/abi";
 import {
-  ARC_BRIDGE_URL,
   ARC_CHAIN_ID,
   ARC_DOCS_URL,
   CONTRACT_ADDRESS,
