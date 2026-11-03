@@ -43,9 +43,18 @@ Mock mode activates when `NEXT_PUBLIC_MOCK_MODE=true`. With a contract address s
 ## Deploy (Vercel)
 
 1. Import this GitHub repo in [vercel.com/new](https://vercel.com/new)
-2. Framework preset: **Next.js**
-3. Set env vars from the table above (no private keys)
-4. Deploy
+2. Framework preset: **Next.js** (repo root — leave **Root Directory** empty)
+3. Production Branch: **`main`**
+4. Env (Production): `NEXT_PUBLIC_CONTRACT_ADDRESS=0x605A1Adc99796C5A1AB059386EBBE533Dc9d22e3`
+5. Deploy
+
+`vercel.json` pins framework/build to Next.js at the repo root.
+
+### If `*.vercel.app` shows NOT_FOUND or login wall
+
+- **Domains →** assign `gm-arc.vercel.app` to this project’s **Production** deployment (team projects often use a longer default host like `gm-arc-<team>.vercel.app`).
+- **Deployment Protection / Vercel Authentication →** disable for Production (or allow public access) so visitors are not redirected to Vercel SSO.
+- Confirm the latest **Production** deploy is from `main` and **Redeploy** if needed.
 
 ## Network
 
