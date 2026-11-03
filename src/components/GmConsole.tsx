@@ -196,26 +196,49 @@ export function GmConsole() {
     }
   }
 
-  const walletLabel = IS_MOCK_MODE
-    ? "demo wallet"
-    : isConnected && address
+  const statusAddr = IS_MOCK_MODE
+    ? shortAddress(MOCK_WALLET)
+    : address
       ? shortAddress(address)
-      : null;
+      : "—";
 
   if (!mounted) {
-    return <div className="console-card console-card--skeleton" />;
+    return (
+      <div className="console-shell">
+        <div className="console-card console-card--skeleton" />
+      </div>
+    );
   }
 
   return (
-    <section className="console-card">
+    <section className="console-shell">
+      <img
+        className="console-avatar console-avatar--left"
+        src="/brand/avatar-left.png"
+        alt=""
+        width={72}
+        height={90}
+      />
+      <img
+        className="console-avatar console-avatar--right"
+        src="/brand/avatar-right.png"
+        alt=""
+        width={72}
+        height={90}
+      />
+
+      <div className="console-card">
       <div className="console-top">
-        <div className="console-meta">
+        <div className="wallet-pill">
           {IS_MOCK_MODE ? (
-            <span className="badge badge--mock">Mock mode</span>
+            <span className="badge badge--mock">Mock</span>
           ) : (
-            <span className="badge badge--live">Arc · {ARC_CHAIN_ID}</span>
+            <>
+              <span className="wallet-pill__net">Arc-{ARC_CHAIN_ID}</span>
+              <span className="online-dot" aria-hidden />
+            </>
           )}
-          {walletLabel ? <span className="wallet-label">{walletLabel}</span> : null}
+          <span className="wallet-pill__addr">{statusAddr}</span>
         </div>
         {IS_MOCK_MODE ? (
           <button type="button" className="btn-connect" onClick={onConnect}>
@@ -245,7 +268,9 @@ export function GmConsole() {
           className={`tab ${tab === "gm" ? "tab--active" : ""}`}
           onClick={() => setTab("gm")}
         >
-          <span aria-hidden>☀</span> GM
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="tab-icon" src="/brand/icon-gm.svg" alt="" />
+          GM
         </button>
         <button
           type="button"
@@ -254,7 +279,9 @@ export function GmConsole() {
           className={`tab ${tab === "gmPlus" ? "tab--active" : ""}`}
           onClick={() => setTab("gmPlus")}
         >
-          <span aria-hidden>✦</span> GM+
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="tab-icon" src="/brand/icon-gmplus.svg" alt="" />
+          GM+
         </button>
       </div>
 
@@ -353,6 +380,7 @@ export function GmConsole() {
       {IS_MOCK_MODE ? (
         <span className="sr-only">demo {MOCK_WALLET}</span>
       ) : null}
+      </div>
     </section>
   );
 }
