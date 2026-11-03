@@ -202,16 +202,9 @@ export function GmConsole() {
       ? shortAddress(address)
       : "—";
 
-  if (!mounted) {
-    return (
-      <div className="console-shell">
-        <div className="console-card console-card--skeleton" />
-      </div>
-    );
-  }
-
-  return (
-    <section className="console-shell">
+  const avatars = (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         className="console-avatar console-avatar--left"
         src="/brand/avatar-left.png"
@@ -219,6 +212,7 @@ export function GmConsole() {
         width={72}
         height={90}
       />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         className="console-avatar console-avatar--right"
         src="/brand/avatar-right.png"
@@ -226,6 +220,21 @@ export function GmConsole() {
         width={72}
         height={90}
       />
+    </>
+  );
+
+  if (!mounted) {
+    return (
+      <div className="console-shell">
+        {avatars}
+        <div className="console-card console-card--skeleton" />
+      </div>
+    );
+  }
+
+  return (
+    <section className="console-shell">
+      {avatars}
 
       <div className="console-card">
       <div className="console-top">
