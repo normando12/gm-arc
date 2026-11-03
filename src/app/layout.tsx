@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans } from "next/font/google";
+import { Orbitron, Exo_2 } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const syne = Syne({
-  variable: "--font-syne",
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  weight: ["500", "600", "700", "800"],
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const exo2 = Exo_2({
+  variable: "--font-exo",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "gm·arc — Tap to GM on Arc",
+  title: "gm.arc — Tap to GM on Arc",
   description:
     "Say good morning onchain on Arc mainnet. Free daily GM, or send GM+ to a fren for 0.01 USDC.",
 };
@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${syne.variable} ${dmSans.variable} antialiased`}>
+      <body className={`${orbitron.variable} ${exo2.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

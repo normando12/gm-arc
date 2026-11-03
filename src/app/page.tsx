@@ -13,14 +13,21 @@ export default function Home() {
       <DawnBackground />
 
       <header className="site-header">
-        <span>Arc Mainnet</span>
-        <a href={ARC_DOCS_URL} target="_blank" rel="noreferrer">
-          Network docs
+        <span className="chip chip--left">Arc Mainnet</span>
+        <a
+          className="chip chip--right"
+          href={ARC_DOCS_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Network Docs
         </a>
       </header>
 
       <main className="site-main">
-        <h1 className="brand">gm·arc</h1>
+        <h1 className="brand">
+          gm<span className="brand-dot">.</span>arc
+        </h1>
         <p className="tagline">
           Say good morning onchain. One tap a day — or send a GM+ to a fren.
         </p>
