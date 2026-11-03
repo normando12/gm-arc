@@ -37,14 +37,10 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_GM_PLUS_FEE` | optional | default `0.01` |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | optional | Reown / WalletConnect |
 | `NEXT_PUBLIC_MOCK_MODE` | no | `true` forces local mock UI |
-| `RELAY_API_KEY` | for in-page bridge | **Server-only.** Relay Kit needs this via `/api/relay` proxy. Never expose as `NEXT_PUBLIC_`. |
-| `NEXT_PUBLIC_RELAY_PROXY` | for in-page bridge | Set to `true` to mount Relay SwapWidget (destination locked to Arc). |
 
 Mock mode activates when `NEXT_PUBLIC_MOCK_MODE=true`. With a contract address set (default in `.env.example`), the app talks to Arc mainnet.
 
-### Bridge note
-
-`https://portal.arc.io/deposit/crypto` sets `X-Frame-Options: DENY` / `frame-ancestors 'none'`, so it cannot be embedded. gm·arc uses an **in-page Relay SwapWidget** with destination **Arc (5042)** and keeps an “Open official Arc deposit portal” fallback link. Without `RELAY_API_KEY` + `NEXT_PUBLIC_RELAY_PROXY=true`, the page shows setup instructions instead of the widget (same class of “provide an api key” issue as a bare Relay embed).
+The app includes a **Bridge USDC to Arc** link to the official deposit portal: https://portal.arc.io/deposit/crypto
 
 ## Deploy (Vercel)
 

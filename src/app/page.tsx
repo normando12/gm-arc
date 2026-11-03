@@ -1,7 +1,11 @@
 import { DawnBackground } from "@/components/DawnBackground";
 import { GmConsole } from "@/components/GmConsole";
-import { BridgePanel } from "@/components/BridgePanel";
-import { ARC_DOCS_URL, GM_PLUS_FEE_USDC, IS_MOCK_MODE } from "@/lib/config";
+import {
+  ARC_BRIDGE_URL,
+  ARC_DOCS_URL,
+  GM_PLUS_FEE_USDC,
+  IS_MOCK_MODE,
+} from "@/lib/config";
 
 export default function Home() {
   return (
@@ -25,7 +29,11 @@ export default function Home() {
           {IS_MOCK_MODE ? " · running in mock mode" : ""}
         </p>
         <GmConsole />
-        <BridgePanel />
+        <p className="bridge-cta">
+          <a href={ARC_BRIDGE_URL} target="_blank" rel="noopener noreferrer">
+            Bridge USDC to Arc
+          </a>
+        </p>
       </main>
 
       <footer className="site-footer">

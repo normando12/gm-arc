@@ -9,8 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@relayprotocol/relay-kit-ui": "^12.0.6",
-    "@relayprotocol/relay-sdk": "^8.0.4",
     "@tanstack/react-query": "^5.66.9",
     "next": "^15.5.7",
     "react": "^19.0.0",
