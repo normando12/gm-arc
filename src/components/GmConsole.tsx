@@ -320,12 +320,6 @@ export function GmConsole() {
         </div>
       ) : null}
 
-      <p className="bridge-cta">
-        <a href={ARC_BRIDGE_URL} target="_blank" rel="noopener noreferrer">
-          Bridge USDC to Arc
-        </a>
-      </p>
-
       <div className="console-foot">
         {IS_MOCK_MODE ? (
           <p>

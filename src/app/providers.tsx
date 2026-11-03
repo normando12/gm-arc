@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { useState, type ReactNode } from "react";
 import { wagmiConfig } from "@/lib/wagmi";
+import { RelayProviders } from "@/components/RelayProviders";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -19,8 +20,10 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <WagmiProvider config={wagmiConfig} reconnectOnMount>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </WagmiProvider>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={wagmiConfig} reconnectOnMount>
+        <RelayProviders>{children}</RelayProviders>
+      </WagmiProvider>
+    </QueryClientProvider>
   );
 }
