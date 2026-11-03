@@ -27,6 +27,7 @@ export const WALLETCONNECT_PROJECT_ID =
 
 export const ARC_DOCS_URL = "https://docs.arc.io/arc/references/connect-to-arc";
 export const ARC_EXPLORER_URL = "https://explorer.arc.io";
+export const ARC_BRIDGE_URL = "https://portal.arc.io/deposit/crypto";
 export const ARC_CHAIN_ID = 5042;
 
 export function shortAddress(addr: string, size = 4): string {

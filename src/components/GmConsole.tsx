@@ -13,6 +13,7 @@ import {
 import { isAddress } from "viem";
 import { arcGmAbi } from "@/lib/abi";
 import {
+  ARC_BRIDGE_URL,
   ARC_CHAIN_ID,
   ARC_DOCS_URL,
   CONTRACT_ADDRESS,
@@ -319,6 +320,12 @@ export function GmConsole() {
           ) : null}
         </div>
       ) : null}
+
+      <p className="bridge-cta">
+        <a href={ARC_BRIDGE_URL} target="_blank" rel="noopener noreferrer">
+          Bridge USDC to Arc
+        </a>
+      </p>
 
       <div className="console-foot">
         {IS_MOCK_MODE ? (
