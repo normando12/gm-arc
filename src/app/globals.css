@@ -241,6 +241,13 @@ a {
   text-overflow: ellipsis;
 }
 
+.console-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
 .btn-connect {
   appearance: none;
   border: 0;
@@ -262,6 +269,36 @@ a {
 .btn-connect:disabled {
   opacity: 0.6;
   cursor: wait;
+}
+
+.btn-x {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-x:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-x:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-x--signed {
+  border-color: rgba(255, 138, 61, 0.45);
+  color: var(--sun-hot);
 }
 
 .tab-row {
@@ -398,6 +435,20 @@ a {
 
 .bridge-cta:hover {
   color: var(--sun-hot);
+}
+
+.x-follow {
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  text-underline-offset: 0.18em;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.x-follow:hover {
+  color: var(--ink);
+  border-bottom-color: rgba(255, 196, 87, 0.55);
 }
 
 .console-foot {

@@ -17,7 +17,8 @@ Tap-to-GM style daily check-in on **Arc mainnet**. v1 supports two actions only:
 
 - Next.js (App Router) + TypeScript + Tailwind
 - wagmi / viem (`arc` chain, id `5042`)
-- Browser wallet via injected connector
+- Browser wallet via injected connector (always available)
+- Optional **Sign in with X** via [Privy](https://docs.privy.io/) (`@privy-io/react-auth`) — same pattern as gm.ink: X is optional; wallet GM still works without Privy
 
 ## Quick start
 
@@ -37,10 +38,25 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_GM_PLUS_FEE` | optional | default `0.01` |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | optional | Reown / WalletConnect |
 | `NEXT_PUBLIC_MOCK_MODE` | no | `true` forces local mock UI |
+| `NEXT_PUBLIC_PRIVY_APP_ID` | for X login | Privy Dashboard app id. Without it, **Sign in with X** stays disabled |
+| `NEXT_PUBLIC_PRIVY_CLIENT_ID` | optional | Privy app client id (multi-env) |
+| `NEXT_PUBLIC_GM_ARC_X_HANDLE` | optional | Defaults to `GMARCxlm` (`@GMARCxlm`) |
+| `PRIVY_APP_SECRET` | server-only later | Do **not** expose as `NEXT_PUBLIC_*`. Not required for client login scaffold |
 
 Mock mode activates when `NEXT_PUBLIC_MOCK_MODE=true`. With a contract address set (default in `.env.example`), the app talks to Arc mainnet.
 
 The app includes a **Bridge USDC to Arc** link to the official deposit portal: https://portal.arc.io/deposit/crypto
+
+### Sign in with X (Privy) setup
+
+1. Create a Privy app at [dashboard.privy.io](https://dashboard.privy.io).
+2. Enable **Twitter / X** (and optionally **Wallet**) under Login methods.
+3. Best practice: create an X developer app as a **Confidential client** and paste **Client ID** + **Client Secret** into Privy (not into this repo).
+4. Set the X OAuth callback to Privy’s hosted URL: `https://auth.privy.io/api/v1/oauth/callback`.
+5. Allowlist origins in Privy: `http://localhost:3000`, `https://gm-arc.vercel.app` (and any custom domain).
+6. Set `NEXT_PUBLIC_PRIVY_APP_ID` in `.env.local` / Vercel Production env, then redeploy.
+
+Until step 6, the UI shows a disabled **Sign in with X** button; **Connect wallet** keeps working.
 
 ## Deploy (Vercel)
 
@@ -48,7 +64,8 @@ The app includes a **Bridge USDC to Arc** link to the official deposit portal: h
 2. Framework preset: **Next.js** (repo root — leave **Root Directory** empty)
 3. Production Branch: **`main`**
 4. Env (Production): `NEXT_PUBLIC_CONTRACT_ADDRESS=0x605A1Adc99796C5A1AB059386EBBE533Dc9d22e3`
-5. Deploy
+5. When ready for X login, also set `NEXT_PUBLIC_PRIVY_APP_ID` (and optional `NEXT_PUBLIC_GM_ARC_X_HANDLE`)
+6. Deploy
 
 `vercel.json` pins framework/build to Next.js at the repo root.
 

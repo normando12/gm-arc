@@ -33,6 +33,7 @@ import {
   saveMock,
   type MockState,
 } from "@/lib/mock";
+import { SignInWithX } from "@/components/SignInWithX";
 
 type Tab = "gm" | "gmPlus";
 
@@ -217,24 +218,27 @@ export function GmConsole() {
           )}
           {walletLabel ? <span className="wallet-label">{walletLabel}</span> : null}
         </div>
-        {IS_MOCK_MODE ? (
-          <button type="button" className="btn-connect" onClick={onConnect}>
-            Connect wallet
-          </button>
-        ) : isConnected ? (
-          <button type="button" className="btn-connect" onClick={() => disconnect()}>
-            {shortAddress(address!)}
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="btn-connect"
-            onClick={onConnect}
-            disabled={connecting}
-          >
-            Connect wallet
-          </button>
-        )}
+        <div className="console-actions">
+          <SignInWithX />
+          {IS_MOCK_MODE ? (
+            <button type="button" className="btn-connect" onClick={onConnect}>
+              Connect wallet
+            </button>
+          ) : isConnected ? (
+            <button type="button" className="btn-connect" onClick={() => disconnect()}>
+              {shortAddress(address!)}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn-connect"
+              onClick={onConnect}
+              disabled={connecting}
+            >
+              Connect wallet
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="tab-row" role="tablist">

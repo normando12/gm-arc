@@ -5,6 +5,7 @@ import {
   GM_PLUS_FEE_USDC,
   IS_MOCK_MODE,
 } from "@/lib/config";
+import { GM_ARC_X_MENTION, GM_ARC_X_URL } from "@/lib/privy";
 
 export default function Home() {
   return (
@@ -33,6 +34,14 @@ export default function Home() {
             rel="noopener noreferrer"
           >
             Bridge USDC to Arc
+          </a>
+          <a
+            className="x-follow"
+            href={GM_ARC_X_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Follow {GM_ARC_X_MENTION}
           </a>
           <p className="footer-note">Built on Arc for the community</p>
         </div>
