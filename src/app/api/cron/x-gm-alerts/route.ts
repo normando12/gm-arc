@@ -67,7 +67,9 @@ async function handle(req: Request): Promise<NextResponse> {
       cursorLastBlock: summary.cursorLastBlock,
       foundGmPlus: summary.foundGmPlus,
       posted: summary.posted,
-      errors: summary.errors.length,
+      errorCount: summary.errors.length,
+      // Full messages — Hobby Runtime Logs often truncate JSON bodies; this is the diagnosis.
+      errors: summary.errors.slice(0, 3),
       stateBackend: summary.stateBackend,
     });
     return json(summary, summary.ok ? 200 : 207);
