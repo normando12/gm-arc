@@ -48,6 +48,8 @@ export const arcGmAbi = [
     inputs: [{ name: "user", type: "address" }],
     outputs: [{ type: "uint256" }],
   },
+  // Live bytecode emits a single topic0 (see ARC_GM_EVENT_TOPIC in x-alerts).
+  // Kept for reference / future verify; the X-alerts indexer filters by topic0.
   {
     type: "event",
     name: "GM",
@@ -67,3 +69,7 @@ export const arcGmAbi = [
     ],
   },
 ] as const;
+
+/** topic0 observed on ArcGM 0x605A1Adc…22e3 (from, to, fee, timestamp). */
+export const ARC_GM_EVENT_TOPIC =
+  "0x9574f84fd3965a2c798ebcac63712a3493e331fab16880d945c36602fac89c24" as const;

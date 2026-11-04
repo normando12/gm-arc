@@ -1,0 +1,107 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { hasUpstash, xAlertsConfig } from "./config";
+
+export type AlertsState = {
+  /** Last fully processed block (inclusive). Next run starts at +1. */
+  lastBlock: number;
+  /** Recently tweeted event keys (`txHash:logIndex`) for dedupe. */
+  tweeted: string[];
+};
+
+const STATE_KEY = "gm-arc:x-alerts:state";
+const MAX_TWEETED = 500;
+
+const memoryFallback: { state: AlertsState | null } = { state: null };
+
+function localStatePath(): string {
+  return path.join(process.cwd(), ".data", "x-gm-alerts.json");
+}
+
+async function upstashCommand(command: unknown[]): Promise<unknown> {
+  const res = await fetch(xAlertsConfig.upstashUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${xAlertsConfig.upstashToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(command),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Upstash ${res.status}: ${body.slice(0, 200)}`);
+  }
+  const json = (await res.json()) as { result?: unknown };
+  return json.result;
+}
+
+function normalize(raw: Partial<AlertsState> | null | undefined): AlertsState {
+  return {
+    lastBlock: typeof raw?.lastBlock === "number" ? raw.lastBlock : 0,
+    tweeted: Array.isArray(raw?.tweeted)
+      ? raw.tweeted.filter((k): k is string => typeof k === "string")
+      : [],
+  };
+}
+
+async function loadLocal(): Promise<AlertsState | null> {
+  try {
+    const text = await readFile(localStatePath(), "utf8");
+    return normalize(JSON.parse(text) as Partial<AlertsState>);
+  } catch {
+    return null;
+  }
+}
+
+async function saveLocal(state: AlertsState): Promise<void> {
+  const file = localStatePath();
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+}
+
+export async function loadAlertsState(): Promise<AlertsState | null> {
+  if (hasUpstash()) {
+    const result = await upstashCommand(["GET", STATE_KEY]);
+    if (typeof result !== "string" || !result) return null;
+    try {
+      return normalize(JSON.parse(result) as Partial<AlertsState>);
+    } catch {
+      return null;
+    }
+  }
+
+  const local = await loadLocal();
+  if (local) return local;
+  return memoryFallback.state;
+}
+
+export async function saveAlertsState(state: AlertsState): Promise<void> {
+  const trimmed: AlertsState = {
+    lastBlock: state.lastBlock,
+    tweeted: state.tweeted.slice(-MAX_TWEETED),
+  };
+
+  memoryFallback.state = trimmed;
+
+  if (hasUpstash()) {
+    await upstashCommand(["SET", STATE_KEY, JSON.stringify(trimmed)]);
+    return;
+  }
+
+  // Prefer durable local file when not on a read-only serverless FS.
+  try {
+    await saveLocal(trimmed);
+  } catch {
+    // Vercel /tmp may work; if not, memory-only for this invocation.
+    try {
+      const tmp = path.join("/tmp", "gm-arc-x-gm-alerts.json");
+      await writeFile(tmp, `${JSON.stringify(trimmed, null, 2)}\n`, "utf8");
+    } catch {
+      /* memory only */
+    }
+  }
+}
+
+export function eventKey(txHash: string, logIndex: number): string {
+  return `${txHash.toLowerCase()}:${logIndex}`;
+}
