@@ -50,13 +50,13 @@ The app includes a **Bridge USDC to Arc** link to the official deposit portal: h
 ### Sign in with X (Privy) setup
 
 1. Privy app id (public): `cmw2ck7cw021d0fjt37otkkxs`
-2. In [dashboard.privy.io](https://dashboard.privy.io) → **enable Twitter / X** under Login methods (required).
-3. Best practice: X developer app as a **Confidential client**; paste **Client ID** + **Client Secret** into Privy (never commit them).
-4. X OAuth callback: `https://auth.privy.io/api/v1/oauth/callback`
-5. **Allowed domains** in Privy Settings must include `https://gm-arc.vercel.app` and `http://localhost:3000` (missing domain = click appears to do nothing / Privy error).
+2. In [dashboard.privy.io](https://dashboard.privy.io) → **Login methods** → enable **Twitter / X** → **Save**.
+3. If Privy shows **“Not allowed / Login with Twitter not allowed”**: create an X app at [developer.x.com](https://developer.x.com) as a **Confidential client**, paste **Client ID** + **Client Secret** into Privy’s Twitter/X settings (never commit them). Empty OAuth fields are not enough for that error.
+4. X OAuth callback / redirect (in the X app): `https://auth.privy.io/api/v1/oauth/callback`
+5. **Allowed domains** in Privy Settings must include `https://gm-arc.vercel.app` and `http://localhost:3000`.
 6. On **Vercel → Environment Variables (Production)** set `NEXT_PUBLIC_PRIVY_APP_ID=cmw2ck7cw021d0fjt37otkkxs`, then **Redeploy**.
 
-Until step 6 is done on Vercel, production keeps a disabled **Sign in with X** button; **Connect wallet** still works. See `/cursor/stores/self/docs/privy-x-setup.md` in the agent store for the short checklist.
+See agent-store checklist: `/cursor/stores/self/docs/privy-x-setup.md`.
 
 ## Deploy (Vercel)
 
