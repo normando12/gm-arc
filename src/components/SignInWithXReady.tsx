@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { useEffect, useState } from "react";
+import { useLogin, usePrivy } from "@privy-io/react-auth";
 import { GM_ARC_X_MENTION } from "@/lib/privy";
 
 function twitterUsername(
@@ -14,44 +14,30 @@ function twitterUsername(
 function errorMessage(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
   if (typeof err === "string" && err.trim()) return err;
-  return "Sign in with X failed. Check Privy Login methods (Twitter/X) and allowed domains.";
+  return "Sign in with X failed. Enable Twitter/X in Privy and allowlist https://gm-arc.vercel.app.";
 }
 
 /** Mount only under PrivyProvider when NEXT_PUBLIC_PRIVY_APP_ID is set. */
 export function SignInWithXReady() {
-  const { ready, authenticated, user, logout, login } = usePrivy();
-  const [busy, setBusy] = useState(false);
+  const { ready, authenticated, user, logout, error: privyError } = usePrivy();
   const [error, setError] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
   const handle = twitterUsername(user);
 
-  const onSignIn = useCallback(async () => {
-    setError(null);
-    if (!ready) {
-      setError("Privy is still loading — wait a second and try again.");
-      return;
-    }
-    setBusy(true);
-    try {
-      // Force the Privy modal / OAuth flow to X only (dashboard must have Twitter/X enabled).
-      await login({ loginMethods: ["twitter"] });
-    } catch (err) {
+  const { login } = useLogin({
+    onComplete: () => {
+      setError(null);
+    },
+    onError: (err) => {
       setError(errorMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  }, [login, ready]);
+    },
+  });
 
-  const onSignOut = useCallback(async () => {
-    setError(null);
-    setBusy(true);
-    try {
-      await logout();
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setBusy(false);
+  useEffect(() => {
+    if (privyError) {
+      setError(errorMessage(privyError));
     }
-  }, [logout]);
+  }, [privyError]);
 
   if (authenticated) {
     return (
@@ -59,13 +45,17 @@ export function SignInWithXReady() {
         <button
           type="button"
           className="btn-x btn-x--signed"
-          onClick={() => {
-            void onSignOut();
-          }}
-          disabled={busy || !ready}
+          disabled={signingOut || !ready}
           title="Sign out of X"
+          onClick={() => {
+            setError(null);
+            setSigningOut(true);
+            void logout()
+              .catch((err: unknown) => setError(errorMessage(err)))
+              .finally(() => setSigningOut(false));
+          }}
         >
-          {busy ? "…" : (handle ?? "Signed in with X")}
+          {signingOut ? "…" : (handle ?? "Signed in with X")}
         </button>
         {error ? <p className="x-auth-error">{error}</p> : null}
       </div>
@@ -77,17 +67,32 @@ export function SignInWithXReady() {
       <button
         type="button"
         className="btn-x"
-        disabled={busy}
-        onClick={() => {
-          void onSignIn();
-        }}
+        disabled={!ready}
         title={
           ready
             ? `Sign in with X — follow ${GM_ARC_X_MENTION} for updates`
             : "Privy is loading…"
         }
+        onClick={() => {
+          // login() is synchronous (void). Call it directly in the click
+          // handler so Privy's modal keeps the user-gesture / isn't deferred.
+          setError(null);
+          if (!ready) {
+            setError("Privy is still loading — wait a second and try again.");
+            return;
+          }
+          if (privyError) {
+            setError(errorMessage(privyError));
+            return;
+          }
+          try {
+            login({ loginMethods: ["twitter"] });
+          } catch (err) {
+            setError(errorMessage(err));
+          }
+        }}
       >
-        {!ready ? "Privy…" : busy ? "Signing in…" : "Sign in with X"}
+        {!ready ? "Privy…" : "Sign in with X"}
       </button>
       {!ready ? (
         <p className="x-auth-hint">Connecting to Privy…</p>
