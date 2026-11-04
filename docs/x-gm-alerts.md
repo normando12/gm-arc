@@ -1,27 +1,28 @@
-# gm·arc — X GM / GM+ alerts (@GMARCxlm)
+# gm·arc — X GM+ alerts (@GMARCxlm)
 
-Post public X notifications when someone GMs or GM+s on Arc mainnet contract
+Post public X notifications when someone sends **GM+** (directed) on Arc mainnet contract
 [`0x605A1Adc99796C5A1AB059386EBBE533Dc9d22e3`](https://explorer.arc.io/address/0x605A1Adc99796C5A1AB059386EBBE533Dc9d22e3),
-same idea as gm.ink / `@gminkonchain`.
+same idea as gm.ink / `@gminkonchain`. **Basic `gm()` is not tweeted.**
 
 **Bot handle:** [@GMARCxlm](https://x.com/GMARCxlm)
 
 ## Copy
 
-| Event | Tweet body |
-| --- | --- |
-| `GMPlus` | `GM sent from @A to @B. Have you GM’d today?` + `https://explorer.arc.io/tx/<hash>` |
-| `GM` | `GM from @A. Have you GM’d today?` + `https://explorer.arc.io/tx/<hash>` |
+| Event | Tweet? | Body |
+| --- | --- | --- |
+| **GM+** (`to ≠ 0`) | yes | `GM sent from @A to @B. Have you GM’d today?` + `https://explorer.arc.io/tx/<hash>` |
+| Basic GM (`to = 0`) | no | — |
 
-`@A` / `@B` = Privy-linked X username when resolvable; otherwise shortened address (`0x605A…22e3`).
+`@A` / `@B` = Privy-linked X username when resolvable; otherwise shortened address (`0x605A…22e3`). Both sender and recipient are always mentioned.
 
 ## Architecture (minimal)
 
 1. **Indexer** — `viem` `getLogs` by live topic0 `0x9574f84f…` (from/to/fee/timestamp; `to=0` ⇒ basic GM) from last cursor → tip (chunked). Repo `event GM` / `GMPlus` names in `ArcGM.sol` do not match this bytecode — do not filter by those signatures.
-2. **Resolver** — Privy server `POST /v1/users/wallet/address` → Twitter linked account username.
-3. **Poster** — X API v2 `POST /2/tweets` as `@GMARCxlm` (OAuth 1.0a user context).
-4. **State** — last processed block + tweeted `txHash:logIndex` keys (Upstash Redis on Vercel; local JSON file for the script).
-5. **Triggers**
+2. **Filter** — tweet only logs with a non-zero `to` (directed GM+).
+3. **Resolver** — Privy server `POST /v1/users/wallet/address` → Twitter linked account username (both parties).
+4. **Poster** — X API v2 `POST /2/tweets` as `@GMARCxlm` (OAuth 1.0a user context).
+5. **State** — last processed block + tweeted `txHash:logIndex` keys (Upstash Redis on Vercel; local JSON file for the script).
+6. **Triggers**
    - Vercel Cron → `GET/POST /api/cron/x-gm-alerts` (Bearer `CRON_SECRET`)
    - Local / external cron → `npm run x-gm-alerts`
 
@@ -77,4 +78,4 @@ Live contract functions match `gm()` / `gmPlusTo(address)`, but the emitted log 
    For near-realtime alerts: upgrade to Pro and raise the schedule, or hit the route
    from an external cron with `Authorization: Bearer $CRON_SECRET`.
 3. Smoke: `X_ALERTS_DRY_RUN=true npm run x-gm-alerts` locally with RPC + optional Privy.
-4. Live: send a GM+ on Arc, wait for cron, verify @GMARCxlm tweet + explorer link.
+4. Live: send a **GM+** on Arc, wait for cron, verify @GMARCxlm tweet names both parties + explorer link.

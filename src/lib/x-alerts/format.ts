@@ -11,18 +11,12 @@ export type IndexedGmEvent = {
   blockNumber: bigint;
 };
 
+/** GM+ only — both parties required (Privy @handle or short address). */
 export function formatAlertText(params: {
-  kind: GmEventKind;
   fromLabel: string;
-  toLabel?: string;
+  toLabel: string;
   txHash: `0x${string}`;
 }): string {
   const link = explorerTx(params.txHash);
-  const cta = "Have you GM’d today?";
-
-  if (params.kind === "GMPlus" && params.toLabel) {
-    return `GM sent from ${params.fromLabel} to ${params.toLabel}. ${cta}\n${link}`;
-  }
-
-  return `GM from ${params.fromLabel}. ${cta}\n${link}`;
+  return `GM sent from ${params.fromLabel} to ${params.toLabel}. Have you GM’d today?\n${link}`;
 }

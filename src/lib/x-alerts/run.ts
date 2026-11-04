@@ -16,7 +16,12 @@ export type RunSummary = {
   dryRun: boolean;
   fromBlock: number;
   toBlock: number;
+  /** Total logs in range (GM + GM+). */
   found: number;
+  /** Directed GM+ only — what we tweet. */
+  foundGmPlus: number;
+  /** Basic GM logs ignored (no tweet). */
+  skippedBasicGm: number;
   posted: number;
   skippedDedupe: number;
   tweets: Array<{
@@ -30,20 +35,15 @@ export type RunSummary = {
   errors: string[];
 };
 
-async function buildTweetText(event: IndexedGmEvent): Promise<string> {
-  const fromLabel = await displayNameForAddress(event.from);
-  if (event.kind === "GMPlus" && event.to) {
-    const toLabel = await displayNameForAddress(event.to);
-    return formatAlertText({
-      kind: "GMPlus",
-      fromLabel,
-      toLabel,
-      txHash: event.txHash,
-    });
+async function buildGmPlusTweetText(event: IndexedGmEvent): Promise<string> {
+  if (event.kind !== "GMPlus" || !event.to) {
+    throw new Error("buildGmPlusTweetText requires a GMPlus event with to");
   }
+  const fromLabel = await displayNameForAddress(event.from);
+  const toLabel = await displayNameForAddress(event.to);
   return formatAlertText({
-    kind: "GM",
     fromLabel,
+    toLabel,
     txHash: event.txHash,
   });
 }
@@ -61,6 +61,8 @@ export async function runXGmAlerts(): Promise<RunSummary> {
       fromBlock: 0,
       toBlock: 0,
       found: 0,
+      foundGmPlus: 0,
+      skippedBasicGm: 0,
       posted: 0,
       skippedDedupe: 0,
       tweets: [],
@@ -92,6 +94,8 @@ export async function runXGmAlerts(): Promise<RunSummary> {
       fromBlock,
       toBlock: tip,
       found: 0,
+      foundGmPlus: 0,
+      skippedBasicGm: 0,
       posted: 0,
       skippedDedupe: 0,
       tweets: [],
@@ -103,11 +107,18 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     };
   }
 
-  const events = await fetchGmEvents({
+  const allEvents = await fetchGmEvents({
     client,
     fromBlock: BigInt(fromBlock),
     toBlock: BigInt(tip),
   });
+
+  // Tweet ONLY directed GM+ (to ≠ 0). Basic GM is indexed for cursor but never posted.
+  const events = allEvents.filter(
+    (e): e is IndexedGmEvent & { to: `0x${string}` } =>
+      e.kind === "GMPlus" && Boolean(e.to),
+  );
+  const skippedBasicGm = allEvents.length - events.length;
 
   const tweeted = new Set(existing?.tweeted ?? []);
   const tweets: RunSummary["tweets"] = [];
@@ -124,7 +135,7 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     }
 
     try {
-      const text = await buildTweetText(event);
+      const text = await buildGmPlusTweetText(event);
 
       if (dryRun) {
         tweets.push({ key, text, dryRun: true });
@@ -181,7 +192,9 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     dryRun,
     fromBlock,
     toBlock: tip,
-    found: events.length,
+    found: allEvents.length,
+    foundGmPlus: events.length,
+    skippedBasicGm,
     posted,
     skippedDedupe,
     tweets,

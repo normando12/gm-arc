@@ -48,11 +48,11 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Mock mode activates when `NEXT_PUBLIC_MOCK_MODE=true`. With a contract address set (default in `.env.example`), the app talks to Arc mainnet.
 
-### X GM / GM+ alerts (@GMARCxlm)
+### X GM+ alerts (@GMARCxlm)
 
-Minimal worker indexes `GM` / `GMPlus` logs and posts from **@GMARCxlm**, e.g.
+Minimal worker indexes ArcGM logs and posts from **@GMARCxlm** **only for GM+** (directed), e.g.
 `GM sent from @A to @B. Have you GM’d today?` + [explorer.arc.io](https://explorer.arc.io) tx link.
-Wallet→X via Privy when linked; otherwise shortened address.
+Basic `gm()` is not tweeted. Wallet→X via Privy when linked; otherwise shortened address (both parties).
 
 - Docs + env / scopes / blockers: [`docs/x-gm-alerts.md`](./docs/x-gm-alerts.md)
 - Vercel Cron: daily `0 12 * * *` UTC → `/api/cron/x-gm-alerts` (Hobby limit; set `CRON_SECRET`)
