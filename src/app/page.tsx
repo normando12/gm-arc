@@ -40,6 +40,7 @@ export default function Home() {
         >
           Bridge USDC to Arc
         </a>
+        <p className="footer-note">Built on Arc for the community</p>
       </footer>
     </div>
   );
