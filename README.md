@@ -38,7 +38,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_GM_PLUS_FEE` | optional | default `0.01` |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | optional | Reown / WalletConnect |
 | `NEXT_PUBLIC_MOCK_MODE` | no | `true` forces local mock UI |
-| `NEXT_PUBLIC_PRIVY_APP_ID` | for X login | Privy Dashboard app id. Without it, **Sign in with X** stays disabled |
+| `NEXT_PUBLIC_PRIVY_APP_ID` | for X login | Public id `cmw2ck7cw021d0fjt37otkkxs` — set on Vercel Production yourself, then redeploy. Also **enable Twitter/X** in Privy Login methods |
 | `NEXT_PUBLIC_PRIVY_CLIENT_ID` | optional | Privy app client id (multi-env) |
 | `NEXT_PUBLIC_GM_ARC_X_HANDLE` | optional | Defaults to `GMARCxlm` (`@GMARCxlm`) |
 | `PRIVY_APP_SECRET` | server-only later | Do **not** expose as `NEXT_PUBLIC_*`. Not required for client login scaffold |
@@ -49,14 +49,14 @@ The app includes a **Bridge USDC to Arc** link to the official deposit portal: h
 
 ### Sign in with X (Privy) setup
 
-1. Create a Privy app at [dashboard.privy.io](https://dashboard.privy.io).
-2. Enable **Twitter / X** (and optionally **Wallet**) under Login methods.
-3. Best practice: create an X developer app as a **Confidential client** and paste **Client ID** + **Client Secret** into Privy (not into this repo).
-4. Set the X OAuth callback to Privy’s hosted URL: `https://auth.privy.io/api/v1/oauth/callback`.
-5. Allowlist origins in Privy: `http://localhost:3000`, `https://gm-arc.vercel.app` (and any custom domain).
-6. Set `NEXT_PUBLIC_PRIVY_APP_ID` in `.env.local` / Vercel Production env, then redeploy.
+1. Privy app id (public): `cmw2ck7cw021d0fjt37otkkxs`
+2. In [dashboard.privy.io](https://dashboard.privy.io) → **enable Twitter / X** under Login methods (required).
+3. Best practice: X developer app as a **Confidential client**; paste **Client ID** + **Client Secret** into Privy (never commit them).
+4. X OAuth callback: `https://auth.privy.io/api/v1/oauth/callback`
+5. Allowlist: `http://localhost:3000`, `https://gm-arc.vercel.app`
+6. On **Vercel → Environment Variables (Production)** set `NEXT_PUBLIC_PRIVY_APP_ID=cmw2ck7cw021d0fjt37otkkxs`, then **Redeploy**.
 
-Until step 6, the UI shows a disabled **Sign in with X** button; **Connect wallet** keeps working.
+Until step 6 is done on Vercel, production keeps a disabled **Sign in with X** button; **Connect wallet** still works. See `/cursor/stores/self/docs/privy-x-setup.md` in the agent store for the short checklist.
 
 ## Deploy (Vercel)
 
