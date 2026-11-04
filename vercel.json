@@ -4,7 +4,7 @@
   "crons": [
     {
       "path": "/api/cron/x-gm-alerts",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 12 * * *"
     }
   ]
 }

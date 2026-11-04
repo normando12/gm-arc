@@ -55,7 +55,7 @@ Minimal worker indexes `GM` / `GMPlus` logs and posts from **@GMARCxlm**, e.g.
 Wallet→X via Privy when linked; otherwise shortened address.
 
 - Docs + env / scopes / blockers: [`docs/x-gm-alerts.md`](./docs/x-gm-alerts.md)
-- Vercel Cron: every 5 minutes → `/api/cron/x-gm-alerts` (set `CRON_SECRET`)
+- Vercel Cron: daily `0 12 * * *` UTC → `/api/cron/x-gm-alerts` (Hobby limit; set `CRON_SECRET`)
 - Local dry run: `X_ALERTS_DRY_RUN=true npm run x-gm-alerts`
 
 The app includes a **Bridge USDC to Arc** link to the official deposit portal: https://portal.arc.io/deposit/crypto

@@ -72,8 +72,9 @@ Live contract functions match `gm()` / `gmPlusTo(address)`, but the emitted log 
 ## Ops checklist
 
 1. Set env vars on Vercel → Redeploy.
-2. Confirm cron in `vercel.json` (`*/5 * * * *` → `/api/cron/x-gm-alerts`).
-   Vercel **Hobby** may only run crons once daily — use Pro or an external cron
-   (`Authorization: Bearer $CRON_SECRET`) hitting the same route for near-realtime.
+2. Confirm cron in `vercel.json` (`0 12 * * *` UTC → `/api/cron/x-gm-alerts`).
+   Vercel **Hobby** only allows **once-daily** crons (a `*/5` schedule fails the deploy).
+   For near-realtime alerts: upgrade to Pro and raise the schedule, or hit the route
+   from an external cron with `Authorization: Bearer $CRON_SECRET`.
 3. Smoke: `X_ALERTS_DRY_RUN=true npm run x-gm-alerts` locally with RPC + optional Privy.
 4. Live: send a GM+ on Arc, wait for cron, verify @GMARCxlm tweet + explorer link.
