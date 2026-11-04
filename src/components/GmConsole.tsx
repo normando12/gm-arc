@@ -196,187 +196,155 @@ export function GmConsole() {
     }
   }
 
-  const statusAddr = IS_MOCK_MODE
-    ? shortAddress(MOCK_WALLET)
-    : address
+  const walletLabel = IS_MOCK_MODE
+    ? "demo wallet"
+    : isConnected && address
       ? shortAddress(address)
-      : "—";
+      : null;
 
   if (!mounted) {
-    return (
-      <div className="console-shell">
-        <div className="console-card console-card--skeleton" />
-      </div>
-    );
+    return <div className="console-card console-card--skeleton" />;
   }
 
   return (
-    <section className="console-shell">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        className="console-avatar console-avatar--left"
-        src="/brand/avatar-hood.png"
-        alt=""
-        width={72}
-        height={68}
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        className="console-avatar console-avatar--right"
-        src="/brand/avatar-bot.png"
-        alt=""
-        width={72}
-        height={68}
-      />
-
-      <div className="console-card">
-        <div className="console-top">
-          <div className="wallet-pill">
-            {IS_MOCK_MODE ? (
-              <span className="badge badge--mock">Mock</span>
-            ) : (
-              <>
-                <span className="wallet-pill__net">Arc-{ARC_CHAIN_ID}</span>
-                {isConnected ? <span className="online-dot" aria-hidden /> : null}
-              </>
-            )}
-            {IS_MOCK_MODE || isConnected ? (
-              <span className="wallet-pill__addr">{statusAddr}</span>
-            ) : null}
-          </div>
+    <section className="console-card">
+      <div className="console-top">
+        <div className="console-meta">
           {IS_MOCK_MODE ? (
-            <button type="button" className="btn-connect" onClick={onConnect}>
-              Connect wallet
-            </button>
-          ) : isConnected ? (
-            <button type="button" className="btn-connect" onClick={() => disconnect()}>
-              {shortAddress(address!)}
-            </button>
+            <span className="badge badge--mock">Mock mode</span>
           ) : (
-            <button
-              type="button"
-              className="btn-connect"
-              onClick={onConnect}
-              disabled={connecting}
-            >
-              Connect wallet
-            </button>
+            <span className="badge badge--live">Arc · {ARC_CHAIN_ID}</span>
           )}
+          {walletLabel ? <span className="wallet-label">{walletLabel}</span> : null}
         </div>
-
-        <div className="tab-row" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "gm"}
-            className={`tab ${tab === "gm" ? "tab--active" : ""}`}
-            onClick={() => setTab("gm")}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="tab-icon" src="/brand/icon-gm.svg" alt="" />
-            GM
+        {IS_MOCK_MODE ? (
+          <button type="button" className="btn-connect" onClick={onConnect}>
+            Connect wallet
           </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "gmPlus"}
-            className={`tab ${tab === "gmPlus" ? "tab--active" : ""}`}
-            onClick={() => setTab("gmPlus")}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="tab-icon" src="/brand/icon-gmplus.svg" alt="" />
-            GM+
+        ) : isConnected ? (
+          <button type="button" className="btn-connect" onClick={() => disconnect()}>
+            {shortAddress(address!)}
           </button>
-        </div>
-
-        {tab === "gm" ? (
-          <div className="tab-panel">
-            <p className="panel-copy">
-              Free daily check-in. One GM every 24 hours — gas only (USDC on Arc).
-            </p>
-            <button
-              type="button"
-              className="btn-primary btn-gm"
-              disabled={busy || onCooldown}
-              onClick={onGm}
-            >
-              {onCooldown
-                ? `Next GM in ${formatCountdown(readyAt, now)}`
-                : writing || confirming
-                  ? "Confirm in wallet…"
-                  : "Tap to GM"}
-            </button>
-          </div>
         ) : (
-          <div className="tab-panel">
-            <p className="panel-copy">
-              Send a premium GM to a fren. Fee: {GM_PLUS_FEE_USDC} USDC + gas. No
-              daily cooldown.
-            </p>
-            <label className="field">
-              <span>Friend address</span>
-              <input
-                value={friend}
-                onChange={(e) => setFriend(e.target.value.trim())}
-                placeholder="0x…"
-                spellCheck={false}
-                autoComplete="off"
-              />
-            </label>
-            <button
-              type="button"
-              className="btn-primary btn-gmplus"
-              disabled={busy}
-              onClick={onGmPlus}
-            >
-              {writing || confirming
-                ? "Confirm in wallet…"
-                : `Send GM+ · ${GM_PLUS_FEE_USDC} USDC`}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn-connect"
+            onClick={onConnect}
+            disabled={connecting}
+          >
+            Connect wallet
+          </button>
         )}
+      </div>
 
-        {status ? (
-          <div className="status-box" role="status">
-            <span>{status}</span>
-            {statusHash ? (
-              IS_MOCK_MODE ? (
-                <code>{shortAddress(statusHash, 4)}</code>
-              ) : (
-                <a href={explorerTx(statusHash)} target="_blank" rel="noreferrer">
-                  {shortAddress(statusHash, 4)}
-                </a>
-              )
-            ) : null}
-          </div>
-        ) : null}
+      <div className="tab-row" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "gm"}
+          className={`tab ${tab === "gm" ? "tab--active" : ""}`}
+          onClick={() => setTab("gm")}
+        >
+          <span aria-hidden>☀</span> GM
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "gmPlus"}
+          className={`tab ${tab === "gmPlus" ? "tab--active" : ""}`}
+          onClick={() => setTab("gmPlus")}
+        >
+          <span aria-hidden>✦</span> GM+
+        </button>
+      </div>
 
-        <div className="console-foot">
-          {IS_MOCK_MODE ? (
-            <p>
-              Demo uses local mock state. Deploy{" "}
-              <code>contracts/ArcGM.sol</code> to go live.{" "}
-              <button type="button" className="linkish" onClick={onResetMock}>
-                Reset mock
-              </button>
-            </p>
-          ) : (
-            <p>
-              Explorer{" "}
-              <a href="https://explorer.arc.io" target="_blank" rel="noreferrer">
-                explorer.arc.io
-              </a>{" "}
-              · contract{" "}
-              <a
-                href={explorerAddress(CONTRACT_ADDRESS)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {shortAddress(CONTRACT_ADDRESS, 4)}
-              </a>
-            </p>
-          )}
+      {tab === "gm" ? (
+        <div className="tab-panel">
+          <p className="panel-copy">
+            Free daily check-in. One GM every 24 hours — gas only (USDC on Arc).
+          </p>
+          <button
+            type="button"
+            className="btn-primary btn-gm"
+            disabled={busy || onCooldown}
+            onClick={onGm}
+          >
+            {onCooldown
+              ? `Next GM in ${formatCountdown(readyAt, now)}`
+              : writing || confirming
+                ? "Confirm in wallet…"
+                : "Tap to GM"}
+          </button>
         </div>
+      ) : (
+        <div className="tab-panel">
+          <p className="panel-copy">
+            Send a premium GM to a fren. Fee: {GM_PLUS_FEE_USDC} USDC + gas. No
+            daily cooldown.
+          </p>
+          <label className="field">
+            <span>Friend address</span>
+            <input
+              value={friend}
+              onChange={(e) => setFriend(e.target.value.trim())}
+              placeholder="0x…"
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </label>
+          <button
+            type="button"
+            className="btn-primary btn-gmplus"
+            disabled={busy}
+            onClick={onGmPlus}
+          >
+            {writing || confirming
+              ? "Confirm in wallet…"
+              : `Send GM+ · ${GM_PLUS_FEE_USDC} USDC`}
+          </button>
+        </div>
+      )}
+
+      {status ? (
+        <div className="status-box" role="status">
+          <span>{status}</span>
+          {statusHash ? (
+            IS_MOCK_MODE ? (
+              <code>{shortAddress(statusHash, 4)}</code>
+            ) : (
+              <a href={explorerTx(statusHash)} target="_blank" rel="noreferrer">
+                {shortAddress(statusHash, 4)}
+              </a>
+            )
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="console-foot">
+        {IS_MOCK_MODE ? (
+          <p>
+            Demo uses local mock state. Deploy{" "}
+            <code>contracts/ArcGM.sol</code> to go live.{" "}
+            <button type="button" className="linkish" onClick={onResetMock}>
+              Reset mock
+            </button>
+          </p>
+        ) : (
+          <p>
+            Explorer{" "}
+            <a href="https://explorer.arc.io" target="_blank" rel="noreferrer">
+              explorer.arc.io
+            </a>{" "}
+            · contract{" "}
+            <a
+              href={explorerAddress(CONTRACT_ADDRESS)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {shortAddress(CONTRACT_ADDRESS, 4)}
+            </a>
+          </p>
+        )}
       </div>
 
       <a className="sr-docs" href={ARC_DOCS_URL} hidden>
