@@ -18,7 +18,7 @@ export function PrivyProviders({ children }: { children: ReactNode }) {
       appId={PRIVY_APP_ID}
       {...(PRIVY_CLIENT_ID ? { clientId: PRIVY_CLIENT_ID } : {})}
       config={{
-        // X is primary; wallet remains available via wagmi Connect (gm.ink-style optional).
+        // X identity only — Arc GM/GM+ uses wagmi external wallets, not Privy embedded.
         loginMethods: ["twitter"],
         appearance: {
           theme: "dark",
@@ -26,8 +26,12 @@ export function PrivyProviders({ children }: { children: ReactNode }) {
         },
         embeddedWallets: {
           ethereum: {
-            // Create an embedded EVM wallet when the user has none (X-only path).
-            createOnLogin: "users-without-wallets",
+            // Must stay "off": createOnLogin with login() stuck the modal on
+            // "Creating your wallet" after Sign in with X (no embedded wallet needed).
+            createOnLogin: "off",
+          },
+          solana: {
+            createOnLogin: "off",
           },
         },
       }}
