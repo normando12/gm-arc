@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# X alerts local cursor / dedupe (script)
+.data/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

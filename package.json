@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "x-gm-alerts": "tsx scripts/x-gm-alerts.ts"
   },
   "dependencies": {
     "@privy-io/react-auth": "^3.51.1",
@@ -19,6 +20,7 @@
     "next": "^15.5.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "twitter-api-v2": "^1.31.0",
     "viem": "^2.31.7",
     "wagmi": "^2.15.6"
   },
@@ -31,6 +33,7 @@
     "eslint-config-next": "^15.5.7",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
