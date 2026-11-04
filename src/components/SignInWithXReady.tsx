@@ -26,6 +26,7 @@ export function SignInWithXReady() {
 
   const { login } = useLogin({
     onComplete: () => {
+      // X OAuth alone is enough — no Privy embedded wallet required for GM.
       setError(null);
     },
     onError: (err) => {

@@ -55,6 +55,7 @@ The app includes a **Bridge USDC to Arc** link to the official deposit portal: h
 4. X OAuth callback / redirect (in the X app): `https://auth.privy.io/api/v1/oauth/callback`
 5. **Allowed domains** in Privy Settings must include `https://gm-arc.vercel.app` and `http://localhost:3000`.
 6. On **Vercel → Environment Variables (Production)** set `NEXT_PUBLIC_PRIVY_APP_ID=cmw2ck7cw021d0fjt37otkkxs`, then **Redeploy**.
+7. **Embedded wallets:** leave automatic create **off** (client sets `createOnLogin: "off"`). gm·arc only needs the X handle from Privy; Arc GM uses wagmi **Connect wallet**. In the Privy Dashboard, if **Embedded wallets → Automatically create … on login** is enabled for EVM/Solana, turn it **off** — otherwise the modal can stick on **Creating your wallet** after Sign in with X.
 
 See agent-store checklist: `/cursor/stores/self/docs/privy-x-setup.md`.
 
