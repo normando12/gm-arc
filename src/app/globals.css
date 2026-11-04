@@ -124,8 +124,7 @@ a {
 }
 
 .site-header,
-.site-main,
-.site-footer {
+.site-main {
   position: relative;
   z-index: 1;
 }
@@ -156,7 +155,7 @@ a {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem 1.25rem 5rem;
+  padding: 1rem 1.25rem 2rem;
   text-align: center;
   animation: rise-in 0.7s ease both;
 }
@@ -380,6 +379,15 @@ a {
   font-size: 0.8rem;
 }
 
+.after-console {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  width: min(100%, 420px);
+}
+
 .bridge-cta {
   color: var(--ink);
   font-size: 0.9rem;
@@ -423,17 +431,6 @@ a {
   cursor: pointer;
 }
 
-.site-footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  padding: 1rem 1.25rem 1.35rem;
-  color: var(--ink-faint);
-  font-size: 0.78rem;
-}
-
 .footer-note {
   margin: 0;
   color: var(--ink-faint);
@@ -447,7 +444,7 @@ a {
   }
 
   .site-main {
-    padding-bottom: 4.5rem;
+    padding-bottom: 2rem;
   }
 
   .console-card {

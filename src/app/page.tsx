@@ -29,19 +29,18 @@ export default function Home() {
           {IS_MOCK_MODE ? " · running in mock mode" : ""}
         </p>
         <GmConsole />
+        <div className="after-console">
+          <a
+            className="bridge-cta"
+            href={ARC_BRIDGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Bridge USDC to Arc
+          </a>
+          <p className="footer-note">Built on Arc for the community</p>
+        </div>
       </main>
-
-      <footer className="site-footer">
-        <a
-          className="bridge-cta"
-          href={ARC_BRIDGE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Bridge USDC to Arc
-        </a>
-        <p className="footer-note">Built on Arc for the community</p>
-      </footer>
     </div>
   );
 }
