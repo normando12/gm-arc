@@ -42,6 +42,11 @@ export const xAlertsConfig = {
   logChunkBlocks: envInt("X_ALERTS_LOG_CHUNK", 1_000),
   maxTweetsPerRun: envInt("X_ALERTS_MAX_TWEETS", 10),
   dryRun: env("X_ALERTS_DRY_RUN") === "true",
+  /**
+   * When true, delete Redis/local cursor+dedupe at the start of the run
+   * (then honor START_BLOCK / lookback). One-shot recovery — unset after.
+   */
+  clearState: env("X_ALERTS_CLEAR_STATE") === "true",
 } as const;
 
 export function hasXCredentials(): boolean {

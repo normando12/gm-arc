@@ -3,6 +3,7 @@ import { formatAlertText, type IndexedGmEvent } from "./format";
 import { createArcClient, fetchGmEvents } from "./index-events";
 import { displayNameForAddress } from "./resolve";
 import {
+  clearAlertsState,
   eventKey,
   loadAlertsState,
   saveAlertsState,
@@ -16,6 +17,7 @@ export type RunSummary = {
   dryRun: boolean;
   fromBlock: number;
   toBlock: number;
+  cursorLastBlock: number | null;
   /** Total logs in range (GM + GM+). */
   found: number;
   /** Directed GM+ only — what we tweet. */
@@ -24,6 +26,8 @@ export type RunSummary = {
   skippedBasicGm: number;
   posted: number;
   skippedDedupe: number;
+  clearedState: boolean;
+  startBlockOverride: boolean;
   tweets: Array<{
     key: string;
     text: string;
@@ -34,6 +38,30 @@ export type RunSummary = {
   privyEnabled: boolean;
   errors: string[];
 };
+
+function emptySummary(
+  partial: Partial<RunSummary> &
+    Pick<RunSummary, "ok" | "dryRun" | "fromBlock" | "toBlock">,
+): RunSummary {
+  return {
+    skipped: undefined,
+    found: 0,
+    foundGmPlus: 0,
+    skippedBasicGm: 0,
+    posted: 0,
+    skippedDedupe: 0,
+    clearedState: false,
+    startBlockOverride: false,
+    cursorLastBlock: null,
+    tweets: [],
+    stateBackend: hasUpstash() ? "upstash" : "local-or-memory",
+    privyEnabled: Boolean(
+      xAlertsConfig.privyAppId && xAlertsConfig.privyAppSecret,
+    ),
+    errors: [],
+    ...partial,
+  };
+}
 
 async function buildGmPlusTweetText(event: IndexedGmEvent): Promise<string> {
   if (event.kind !== "GMPlus" || !event.to) {
@@ -51,60 +79,58 @@ async function buildGmPlusTweetText(event: IndexedGmEvent): Promise<string> {
 export async function runXGmAlerts(): Promise<RunSummary> {
   const errors: string[] = [];
   const dryRun = xAlertsConfig.dryRun || !hasXCredentials();
+  let clearedState = false;
 
   if (!hasXCredentials() && !xAlertsConfig.dryRun) {
-    return {
+    return emptySummary({
       ok: true,
       skipped:
         "X credentials missing (set X_API_KEY, X_API_KEY_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET). Use X_ALERTS_DRY_RUN=true to index without posting.",
       dryRun: true,
       fromBlock: 0,
       toBlock: 0,
-      found: 0,
-      foundGmPlus: 0,
-      skippedBasicGm: 0,
-      posted: 0,
-      skippedDedupe: 0,
-      tweets: [],
-      stateBackend: hasUpstash() ? "upstash" : "local-or-memory",
-      privyEnabled: Boolean(
-        xAlertsConfig.privyAppId && xAlertsConfig.privyAppSecret,
-      ),
-      errors: [],
-    };
+    });
+  }
+
+  if (xAlertsConfig.clearState) {
+    await clearAlertsState();
+    clearedState = true;
+    console.info("[x-gm-alerts] cleared state (X_ALERTS_CLEAR_STATE=true)");
   }
 
   const client = createArcClient();
   const tip = Number(await client.getBlockNumber());
   const existing = await loadAlertsState();
+  const cursorLastBlock =
+    existing && existing.lastBlock > 0 ? existing.lastBlock : null;
 
+  /**
+   * From-block resolution:
+   * 1) If X_ALERTS_START_BLOCK is set, it wins (rewind past a bad Redis cursor).
+   * 2) Else resume after cursor.
+   * 3) Else tip − lookback.
+   */
   let fromBlock: number;
-  if (existing && existing.lastBlock > 0) {
-    fromBlock = existing.lastBlock + 1;
-  } else if (xAlertsConfig.startBlock != null) {
+  let startBlockOverride = false;
+  if (xAlertsConfig.startBlock != null) {
     fromBlock = xAlertsConfig.startBlock;
+    startBlockOverride = true;
+  } else if (cursorLastBlock != null) {
+    fromBlock = cursorLastBlock + 1;
   } else {
     fromBlock = Math.max(0, tip - xAlertsConfig.lookbackBlocks);
   }
 
   if (fromBlock > tip) {
-    return {
+    return emptySummary({
       ok: true,
       dryRun,
       fromBlock,
       toBlock: tip,
-      found: 0,
-      foundGmPlus: 0,
-      skippedBasicGm: 0,
-      posted: 0,
-      skippedDedupe: 0,
-      tweets: [],
-      stateBackend: hasUpstash() ? "upstash" : "local-or-memory",
-      privyEnabled: Boolean(
-        xAlertsConfig.privyAppId && xAlertsConfig.privyAppSecret,
-      ),
-      errors: [],
-    };
+      cursorLastBlock,
+      clearedState,
+      startBlockOverride,
+    });
   }
 
   const allEvents = await fetchGmEvents({
@@ -120,7 +146,9 @@ export async function runXGmAlerts(): Promise<RunSummary> {
   );
   const skippedBasicGm = allEvents.length - events.length;
 
-  const tweeted = new Set(existing?.tweeted ?? []);
+  const tweeted = new Set(
+    startBlockOverride || clearedState ? [] : (existing?.tweeted ?? []),
+  );
   const tweets: RunSummary["tweets"] = [];
   let posted = 0;
   let skippedDedupe = 0;
@@ -139,7 +167,7 @@ export async function runXGmAlerts(): Promise<RunSummary> {
 
       if (dryRun) {
         tweets.push({ key, text, dryRun: true });
-        tweeted.add(key);
+        // Do NOT mark tweeted / advance cursor on dry-run — allows a later live post.
         posted += 1;
         continue;
       }
@@ -156,6 +184,30 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     }
   }
 
+  // Dry-run: never persist cursor/dedupe (avoids locking out live posts).
+  if (dryRun) {
+    return {
+      ok: errors.length === 0,
+      dryRun: true,
+      fromBlock,
+      toBlock: tip,
+      cursorLastBlock,
+      found: allEvents.length,
+      foundGmPlus: events.length,
+      skippedBasicGm,
+      posted,
+      skippedDedupe,
+      clearedState,
+      startBlockOverride,
+      tweets,
+      stateBackend: hasUpstash() ? "upstash" : "local-or-memory",
+      privyEnabled: Boolean(
+        xAlertsConfig.privyAppId && xAlertsConfig.privyAppSecret,
+      ),
+      errors,
+    };
+  }
+
   // Advance cursor only through successfully handled events (or empty range).
   let lastBlock = tip;
   if (errors.length > 0 && tweets.length > 0) {
@@ -165,7 +217,7 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     if (lastOk) lastBlock = Number(lastOk.blockNumber);
   } else if (errors.length > 0 && tweets.length === 0) {
     // Failed on first new event — do not advance past previous cursor.
-    lastBlock = existing?.lastBlock ?? fromBlock - 1;
+    lastBlock = cursorLastBlock ?? fromBlock - 1;
   }
 
   // If we hit maxTweets mid-range, park cursor at last posted event block
@@ -182,21 +234,24 @@ export async function runXGmAlerts(): Promise<RunSummary> {
   }
 
   const nextState: AlertsState = {
-    lastBlock: Math.max(lastBlock, existing?.lastBlock ?? 0),
+    lastBlock: Math.max(lastBlock, cursorLastBlock ?? 0),
     tweeted: [...tweeted],
   };
   await saveAlertsState(nextState);
 
   return {
     ok: errors.length === 0,
-    dryRun,
+    dryRun: false,
     fromBlock,
     toBlock: tip,
+    cursorLastBlock,
     found: allEvents.length,
     foundGmPlus: events.length,
     skippedBasicGm,
     posted,
     skippedDedupe,
+    clearedState,
+    startBlockOverride,
     tweets,
     stateBackend: hasUpstash() ? "upstash" : "local-or-memory",
     privyEnabled: Boolean(
