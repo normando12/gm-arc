@@ -5,8 +5,21 @@ import { runXGmAlerts } from "@/lib/x-alerts/run";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 /** Allow enough time for getLogs + Privy + a few tweets. */
 export const maxDuration = 60;
+
+function json(data: unknown, status: number): NextResponse {
+  // CDN-cached cron responses do not appear in Runtime Logs (Vercel docs).
+  return NextResponse.json(data, {
+    status,
+    headers: {
+      "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+      "CDN-Cache-Control": "no-store",
+      "Vercel-CDN-Cache-Control": "no-store",
+    },
+  });
+}
 
 function authorized(req: Request): boolean {
   const secret = xAlertsConfig.cronSecret;
@@ -21,28 +34,47 @@ function authorized(req: Request): boolean {
 }
 
 async function handle(req: Request): Promise<NextResponse> {
+  // Always log entry so Runtime Logs show an invocation even on 401.
+  console.info("[x-gm-alerts] invoke", {
+    method: req.method,
+    ua: req.headers.get("user-agent"),
+    hasAuth: Boolean(req.headers.get("authorization")),
+    vercelCron: req.headers.get("x-vercel-cron") || null,
+  });
+
   if (!xAlertsConfig.cronSecret) {
-    return NextResponse.json(
+    return json(
       {
         ok: false,
         error:
           "CRON_SECRET is not set. Refusing to run the X alerts worker without auth.",
       },
-      { status: 503 },
+      503,
     );
   }
 
   if (!authorized(req)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    return json({ ok: false, error: "Unauthorized" }, 401);
   }
 
   try {
     const summary = await runXGmAlerts();
-    return NextResponse.json(summary, { status: summary.ok ? 200 : 207 });
+    console.info("[x-gm-alerts] done", {
+      ok: summary.ok,
+      dryRun: summary.dryRun,
+      fromBlock: summary.fromBlock,
+      toBlock: summary.toBlock,
+      cursorLastBlock: summary.cursorLastBlock,
+      foundGmPlus: summary.foundGmPlus,
+      posted: summary.posted,
+      errors: summary.errors.length,
+      stateBackend: summary.stateBackend,
+    });
+    return json(summary, summary.ok ? 200 : 207);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[x-gm-alerts]", err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[x-gm-alerts] fatal", err);
+    return json({ ok: false, error: message }, 500);
   }
 }
 

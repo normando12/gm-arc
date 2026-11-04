@@ -9,7 +9,9 @@ export type AlertsState = {
   tweeted: string[];
 };
 
-const STATE_KEY = "gm-arc:x-alerts:state";
+/** Upstash Redis key — clear this to re-scan from lookback / START_BLOCK. */
+export const X_ALERTS_STATE_KEY = "gm-arc:x-alerts:state";
+
 const MAX_TWEETED = 500;
 
 const memoryFallback: { state: AlertsState | null } = { state: null };
@@ -59,9 +61,23 @@ async function saveLocal(state: AlertsState): Promise<void> {
   await writeFile(file, `${JSON.stringify(state, null, 2)}\n`, "utf8");
 }
 
+export async function clearAlertsState(): Promise<void> {
+  memoryFallback.state = null;
+  if (hasUpstash()) {
+    await upstashCommand(["DEL", X_ALERTS_STATE_KEY]);
+    return;
+  }
+  try {
+    const { unlink } = await import("node:fs/promises");
+    await unlink(localStatePath());
+  } catch {
+    /* ignore */
+  }
+}
+
 export async function loadAlertsState(): Promise<AlertsState | null> {
   if (hasUpstash()) {
-    const result = await upstashCommand(["GET", STATE_KEY]);
+    const result = await upstashCommand(["GET", X_ALERTS_STATE_KEY]);
     if (typeof result !== "string" || !result) return null;
     try {
       return normalize(JSON.parse(result) as Partial<AlertsState>);
@@ -84,7 +100,7 @@ export async function saveAlertsState(state: AlertsState): Promise<void> {
   memoryFallback.state = trimmed;
 
   if (hasUpstash()) {
-    await upstashCommand(["SET", STATE_KEY, JSON.stringify(trimmed)]);
+    await upstashCommand(["SET", X_ALERTS_STATE_KEY, JSON.stringify(trimmed)]);
     return;
   }
 

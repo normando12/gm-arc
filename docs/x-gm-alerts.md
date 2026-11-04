@@ -78,4 +78,5 @@ Live contract functions match `gm()` / `gmPlusTo(address)`, but the emitted log 
    For near-realtime alerts: upgrade to Pro and raise the schedule, or hit the route
    from an external cron with `Authorization: Bearer $CRON_SECRET`.
 3. Smoke: `X_ALERTS_DRY_RUN=true npm run x-gm-alerts` locally with RPC + optional Privy.
-4. Live: send a **GM+** on Arc, wait for cron, verify @GMARCxlm tweet names both parties + explorer link.
+4. Live trigger on Hobby: **prefer `curl`** with `Authorization: Bearer $CRON_SECRET` (do not expand Runtime Logs to 24h — stay **Last 30m**, open Request Logs, invoke immediately). Dashboard Cron **Run** may leave empty logs (cached/redirect omitted).
+5. If cursor skipped GM+: Upstash `DEL gm-arc:x-alerts:state`, set `X_ALERTS_START_BLOCK=29570000`, Redeploy, `curl` again.
