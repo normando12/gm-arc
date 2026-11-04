@@ -33,8 +33,11 @@ export const xAlertsConfig = {
   startBlock: env("X_ALERTS_START_BLOCK")
     ? envInt("X_ALERTS_START_BLOCK", 0)
     : null,
-  /** Blocks to scan when no cursor exists (≈ few minutes depending on Arc block time). */
-  lookbackBlocks: envInt("X_ALERTS_LOOKBACK_BLOCKS", 300),
+  /**
+   * Blocks to scan when no Redis/local cursor exists.
+   * Default 5000 — a too-small lookback (e.g. 300) can miss recent GM+ on first run.
+   */
+  lookbackBlocks: envInt("X_ALERTS_LOOKBACK_BLOCKS", 5_000),
   /** eth_getLogs chunk size (Arc RPC rejects oversized ranges). */
   logChunkBlocks: envInt("X_ALERTS_LOG_CHUNK", 1_000),
   maxTweetsPerRun: envInt("X_ALERTS_MAX_TWEETS", 10),
