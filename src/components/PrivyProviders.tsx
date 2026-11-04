@@ -18,11 +18,11 @@ export function PrivyProviders({ children }: { children: ReactNode }) {
       appId={PRIVY_APP_ID}
       {...(PRIVY_CLIENT_ID ? { clientId: PRIVY_CLIENT_ID } : {})}
       config={{
-        loginMethods: ["twitter", "wallet"],
+        // X is primary; wallet remains available via wagmi Connect (gm.ink-style optional).
+        loginMethods: ["twitter"],
         appearance: {
           theme: "dark",
           accentColor: "#ff8a3d",
-          logo: undefined,
         },
         embeddedWallets: {
           ethereum: {

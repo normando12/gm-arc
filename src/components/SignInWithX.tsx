@@ -1,20 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { IS_PRIVY_ENABLED } from "@/lib/privy";
-
-const SignInWithXReady = dynamic(
-  () =>
-    import("@/components/SignInWithXReady").then((m) => m.SignInWithXReady),
-  {
-    ssr: false,
-    loading: () => (
-      <button type="button" className="btn-x" disabled>
-        …
-      </button>
-    ),
-  },
-);
+import { SignInWithXReady } from "@/components/SignInWithXReady";
 
 /**
  * Optional Sign in with X (Privy). External wallet connect stays separate.
