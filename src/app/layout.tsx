@@ -18,7 +18,7 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "gm·arc — Tap to GM on Arc",
   description:
-    "Say good morning onchain on Arc mainnet. Free daily GM, or send GM+ to a fren for 0.01 USDC.",
+    "Say good morning onchain on Arc mainnet. Free daily GM, or send GM+ to a fren (0.01 tip + 1 USDC ops fee).",
 };
 
 export default function RootLayout({

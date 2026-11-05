@@ -1,24 +1,19 @@
 import {
   createPublicClient,
-  decodeAbiParameters,
   http,
+  parseAbiItem,
   type Log,
   type PublicClient,
 } from "viem";
 import { arc } from "@/lib/arc";
+import { ARC_GM_V1_EVENT_TOPIC } from "@/lib/abi";
 import { xAlertsConfig } from "./config";
 import type { IndexedGmEvent } from "./format";
 
-/**
- * On-chain topic0 for ArcGM at 0x605A1Adc…22e3.
- * Shape: (address indexed from, address indexed to, uint256 fee, uint256 timestamp).
- * Basic `gm()` uses to = address(0). Directed GM+ sets `to` to the recipient.
- *
- * Note: this does **not** match `event GM` / `event GMPlus` in `contracts/ArcGM.sol`
- * (repo source drifted from the live bytecode). Index by topic0, not the Solidity names.
- */
-export const ARC_GM_EVENT_TOPIC =
-  "0x9574f84fd3965a2c798ebcac63712a3493e331fab16880d945c36602fac89c24" as const;
+/** v2: `event GMPlus(address indexed from, address indexed to, uint256 friendTip, uint256 ownerFee, uint256 timestamp)` */
+const gmPlusV2 = parseAbiItem(
+  "event GMPlus(address indexed from, address indexed to, uint256 friendTip, uint256 ownerFee, uint256 timestamp)",
+);
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -34,6 +29,29 @@ function topicAddress(topic: `0x${string}` | null | undefined): `0x${string}` | 
   return `0x${topic.slice(26).toLowerCase()}` as `0x${string}`;
 }
 
+function asGmPlus(
+  log: Log,
+  from: `0x${string}`,
+  to: `0x${string}`,
+): IndexedGmEvent | null {
+  if (!log.transactionHash || log.logIndex == null || log.blockNumber == null) {
+    return null;
+  }
+  return {
+    kind: "GMPlus",
+    from,
+    to,
+    txHash: log.transactionHash,
+    logIndex: Number(log.logIndex),
+    blockNumber: log.blockNumber,
+  };
+}
+
+/**
+ * Index directed GM+ for tweets.
+ * - Prefer v2 ABI `GMPlus` on the configured contract.
+ * - Also accept legacy v1 topic0 (non-zero `to`) if still pointed at the old address.
+ */
 export async function fetchGmEvents(params: {
   client: PublicClient;
   fromBlock: bigint;
@@ -43,52 +61,48 @@ export async function fetchGmEvents(params: {
   const address = xAlertsConfig.contractAddress;
   const chunk = BigInt(xAlertsConfig.logChunkBlocks);
   const out: IndexedGmEvent[] = [];
+  const seen = new Set<string>();
 
   for (let start = fromBlock; start <= toBlock; start += chunk + 1n) {
     const end = start + chunk > toBlock ? toBlock : start + chunk;
 
-    // Raw topic0 filter (unknown Solidity event name on the live bytecode).
-    const logs = (await client.getLogs({
-      address,
-      fromBlock: start,
-      toBlock: end,
-      topics: [ARC_GM_EVENT_TOPIC],
-    } as Parameters<PublicClient["getLogs"]>[0])) as Log[];
+    const [v2Logs, v1Logs] = await Promise.all([
+      client.getLogs({
+        address,
+        event: gmPlusV2,
+        fromBlock: start,
+        toBlock: end,
+      }),
+      client.getLogs({
+        address,
+        fromBlock: start,
+        toBlock: end,
+        topics: [ARC_GM_V1_EVENT_TOPIC],
+      } as Parameters<PublicClient["getLogs"]>[0]) as Promise<Log[]>,
+    ]);
 
-    for (const log of logs) {
-      if (
-        !log.transactionHash ||
-        log.logIndex == null ||
-        log.blockNumber == null
-      ) {
-        continue;
-      }
+    for (const log of v2Logs) {
+      const from = log.args.from;
+      const to = log.args.to;
+      if (!from || !to || to.toLowerCase() === ZERO) continue;
+      const item = asGmPlus(log, from, to);
+      if (!item) continue;
+      const key = `${item.txHash}:${item.logIndex}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(item);
+    }
 
+    for (const log of v1Logs) {
       const from = topicAddress(log.topics[1]);
       const to = topicAddress(log.topics[2]);
-      if (!from) continue;
-
-      // Decode fee/timestamp when present (informational; tweets only need parties + tx).
-      if (log.data && log.data !== "0x" && log.data.length >= 130) {
-        try {
-          decodeAbiParameters(
-            [{ type: "uint256" }, { type: "uint256" }],
-            log.data,
-          );
-        } catch {
-          /* ignore decode errors — still tweet from topics */
-        }
-      }
-
-      const isPlus = Boolean(to && to !== ZERO);
-      out.push({
-        kind: isPlus ? "GMPlus" : "GM",
-        from,
-        to: isPlus ? (to as `0x${string}`) : undefined,
-        txHash: log.transactionHash,
-        logIndex: Number(log.logIndex),
-        blockNumber: log.blockNumber,
-      });
+      if (!from || !to || to === ZERO) continue;
+      const item = asGmPlus(log, from, to);
+      if (!item) continue;
+      const key = `${item.txHash}:${item.logIndex}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(item);
     }
   }
 

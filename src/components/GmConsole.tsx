@@ -18,6 +18,8 @@ import {
   CONTRACT_ADDRESS,
   GM_PLUS_FEE_USDC,
   GM_PLUS_FEE_WEI,
+  GM_PLUS_FRIEND_TIP_USDC,
+  GM_PLUS_OWNER_FEE_USDC,
   IS_MOCK_MODE,
   explorerAddress,
   explorerTx,
@@ -283,8 +285,9 @@ export function GmConsole() {
       ) : (
         <div className="tab-panel">
           <p className="panel-copy">
-            Send a premium GM to a fren. Fee: {GM_PLUS_FEE_USDC} USDC + gas. No
-            daily cooldown.
+            Send a premium GM to a fren. Total {GM_PLUS_FEE_USDC} USDC + gas:{" "}
+            {GM_PLUS_FRIEND_TIP_USDC} to your fren, {GM_PLUS_OWNER_FEE_USDC} ops
+            fee. No daily cooldown.
           </p>
           <label className="field">
             <span>Friend address</span>
