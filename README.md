@@ -34,8 +34,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Name | Required | Notes |
 | --- | --- | --- |
-| `NEXT_PUBLIC_CONTRACT_ADDRESS` | yes for live | `0x605A1Adc99796C5A1AB059386EBBE533Dc9d22e3` |
-| `NEXT_PUBLIC_GM_PLUS_FEE` | optional | default `0.01` |
+| `NEXT_PUBLIC_CONTRACT_ADDRESS` | yes for live | v1 `0x605A1Adc…22e3` until v2 deploy; then new address from `npm run deploy:arcgm` |
+| `NEXT_PUBLIC_GM_PLUS_FEE` | optional | total GM+ value; default **1.01** (0.01 tip + 1 ops) |
+| `NEXT_PUBLIC_GM_PLUS_FRIEND_TIP` / `OWNER_FEE` / `OWNER` | optional | Option A defaults `0.01` / `1` / `0xe8fE…3773` |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | optional | Reown / WalletConnect |
 | `NEXT_PUBLIC_MOCK_MODE` | no | `true` forces local mock UI |
 | `NEXT_PUBLIC_PRIVY_APP_ID` | for X login | Public id `cmw2ck7cw021d0fjt37otkkxs` — set on Vercel Production yourself, then redeploy. Also **enable Twitter/X** in Privy Login methods |

@@ -22,7 +22,21 @@ export const arcGmAbi = [
   },
   {
     type: "function",
-    name: "treasury",
+    name: "FRIEND_TIP",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "OWNER_FEE",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "owner",
     stateMutability: "view",
     inputs: [],
     outputs: [{ type: "address" }],
@@ -48,8 +62,6 @@ export const arcGmAbi = [
     inputs: [{ name: "user", type: "address" }],
     outputs: [{ type: "uint256" }],
   },
-  // Live bytecode emits a single topic0 (see ARC_GM_EVENT_TOPIC in x-alerts).
-  // Kept for reference / future verify; the X-alerts indexer filters by topic0.
   {
     type: "event",
     name: "GM",
@@ -64,12 +76,16 @@ export const arcGmAbi = [
     inputs: [
       { name: "from", type: "address", indexed: true },
       { name: "to", type: "address", indexed: true },
-      { name: "fee", type: "uint256", indexed: false },
+      { name: "friendTip", type: "uint256", indexed: false },
+      { name: "ownerFee", type: "uint256", indexed: false },
       { name: "timestamp", type: "uint256", indexed: false },
     ],
   },
 ] as const;
 
-/** topic0 observed on ArcGM 0x605A1Adc…22e3 (from, to, fee, timestamp). */
-export const ARC_GM_EVENT_TOPIC =
+/**
+ * Legacy v1 ArcGM topic0 (unified log; `to=0` = basic GM).
+ * Kept so x-alerts can optionally scan the old address during migration.
+ */
+export const ARC_GM_V1_EVENT_TOPIC =
   "0x9574f84fd3965a2c798ebcac63712a3493e331fab16880d945c36602fac89c24" as const;

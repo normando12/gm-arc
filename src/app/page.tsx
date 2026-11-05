@@ -3,6 +3,8 @@ import { GmConsole } from "@/components/GmConsole";
 import {
   ARC_BRIDGE_URL,
   GM_PLUS_FEE_USDC,
+  GM_PLUS_FRIEND_TIP_USDC,
+  GM_PLUS_OWNER_FEE_USDC,
   IS_MOCK_MODE,
 } from "@/lib/config";
 import { GM_ARC_X_MENTION, GM_ARC_X_URL } from "@/lib/privy";
@@ -22,7 +24,8 @@ export default function Home() {
           Say good morning onchain. One tap a day — or send a GM+ to a fren.
         </p>
         <p className="status-line">
-          Free GM · GM+ {GM_PLUS_FEE_USDC} USDC
+          Free GM · GM+ {GM_PLUS_FEE_USDC} USDC ({GM_PLUS_FRIEND_TIP_USDC} tip +{" "}
+          {GM_PLUS_OWNER_FEE_USDC} ops)
           {IS_MOCK_MODE ? " · running in mock mode" : ""}
         </p>
         <GmConsole />
