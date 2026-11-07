@@ -55,6 +55,7 @@ This worker implements **OAuth 1.0a only**.
 | `UPSTASH_REDIS_REST_TOKEN` | Vercel durable cursor | Pair with URL |
 | `ARC_RPC_URL` | optional | Default `https://rpc.mainnet.arc.io` |
 | `X_ALERTS_START_BLOCK` | optional | Bootstrap block if no cursor (default: recent lookback) |
+| `X_ALERTS_LOG_CHUNK` | optional | Initial `eth_getLogs` window (default **200**). Bisects on Arc `LimitExceededRpcError`. |
 | `X_ALERTS_DRY_RUN` | optional | `true` = index + format, do not call X |
 | `X_ALERTS_MAX_TWEETS` | optional | Cap per run (default `10`) |
 | `NEXT_PUBLIC_CONTRACT_ADDRESS` | optional | Defaults to live ArcGM |

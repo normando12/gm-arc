@@ -38,8 +38,11 @@ export const xAlertsConfig = {
    * Default 5000 — a too-small lookback (e.g. 300) can miss recent GM+ on first run.
    */
   lookbackBlocks: envInt("X_ALERTS_LOOKBACK_BLOCKS", 5_000),
-  /** eth_getLogs chunk size (Arc RPC rejects oversized ranges). */
-  logChunkBlocks: envInt("X_ALERTS_LOG_CHUNK", 1_000),
+  /**
+   * eth_getLogs initial chunk size. Arc public RPC throws LimitExceededRpcError
+   * on large ranges — default 200; indexer bisects further on limit errors.
+   */
+  logChunkBlocks: envInt("X_ALERTS_LOG_CHUNK", 200),
   maxTweetsPerRun: envInt("X_ALERTS_MAX_TWEETS", 10),
   dryRun: env("X_ALERTS_DRY_RUN") === "true",
   /**
