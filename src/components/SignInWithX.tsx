@@ -6,6 +6,7 @@ import { SignInWithXReady } from "@/components/SignInWithXReady";
 /**
  * Optional Sign in with X (Privy). External wallet connect stays separate.
  * Renders a disabled button when NEXT_PUBLIC_PRIVY_APP_ID is missing.
+ * Wallet↔@handle registration lives in PrivyProviders (RegisterXHandle).
  */
 export function SignInWithX() {
   if (!IS_PRIVY_ENABLED) {

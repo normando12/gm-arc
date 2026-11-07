@@ -13,13 +13,19 @@ same idea as gm.ink / `@gminkonchain`. **Basic `gm()` is not tweeted.**
 | **GM+** (`to ≠ 0`) | yes | `GM sent from @A to @B. Have you GM’d today?` + `https://explorer.arc.io/tx/<hash>` |
 | Basic GM (`to = 0`) | no | — |
 
-`@A` / `@B` = Privy-linked X username when resolvable; otherwise shortened address (`0x605A…22e3`). Both sender and recipient are always mentioned.
+`@A` / `@B` = X username when resolvable; otherwise shortened address (`0x605A…22e3`). Both sender and recipient are always mentioned.
+
+**Handle resolution order** (per wallet):
+
+1. App registry — `POST /api/x-handle` on **Connect wallet**, **Sign in with X**, and before **GM+** (Upstash `gm-arc:x-handle:<addr>` / local `.data/x-handles.json`). `RegisterXHandle` under PrivyProviders listens for those paths.
+2. Privy wallet link — SDK `getUserByWalletAddress` then REST `api.privy.io` / `auth.privy.io`
+3. Truncated address fallback
 
 ## Architecture (minimal)
 
 1. **Indexer** — `viem` `getLogs` by live topic0 `0x9574f84f…` (from/to/fee/timestamp; `to=0` ⇒ basic GM) from last cursor → tip (chunked). Repo `event GM` / `GMPlus` names in `ArcGM.sol` do not match this bytecode — do not filter by those signatures.
 2. **Filter** — tweet only logs with a non-zero `to` (directed GM+).
-3. **Resolver** — Privy server `POST /v1/users/wallet/address` → Twitter linked account username (both parties).
+3. **Resolver** — registry + Privy wallet→Twitter username (both parties).
 4. **Poster** — X API v2 `POST /2/tweets` as `@GMARCxlm` (OAuth 1.0a user context).
 5. **State** — last processed block + tweeted `txHash:logIndex` keys (Upstash Redis on Vercel; local JSON file for the script).
 6. **Triggers**
@@ -70,9 +76,9 @@ Live contract functions match `gm()` / `gmPlusTo(address)`, but the emitted log 
 ## Blockers (user action)
 
 1. **X posting keys** — Create/attach an X app to @GMARCxlm, set Read and write, generate the four OAuth 1.0a secrets, paste into Vercel. Without these the worker stays dry / skipped.
-2. **Privy server API** — Set `PRIVY_APP_SECRET` (+ `PRIVY_APP_ID`) so wallet→@handle works. Without it, tweets use shortened addresses only.
-3. **Wallet↔X link quality** — Privy only returns a handle if that Arc wallet is linked on the user’s Privy account. Today Sign in with X and wagmi Connect are separate; users who never link the wallet in Privy will keep short-address mentions until linking is added in-app.
-4. **Upstash Redis** — Required for durable cursor/dedupe on Vercel. Without it, the cron uses a short lookback and best-effort in-process dedupe (duplicate risk across cold starts). Local script uses `.data/x-gm-alerts.json` (gitignored).
+2. **Privy server API** — Set `PRIVY_APP_SECRET` (+ `PRIVY_APP_ID`) so `/api/x-handle` can verify sessions and Privy wallet lookup works. Without it, tweets use shortened addresses only (unless a prior registry write exists).
+3. **Wallet↔X registration** — Sign in with X **and** Connect wallet once; the client calls `POST /api/x-handle` so cron can `@mention` that wallet. Users who only connect a wallet (no X session) stay on short-address mentions unless the wallet is also linked inside Privy.
+4. **Upstash Redis** — Required for durable cursor/dedupe **and** handle registry on Vercel. Without it, the cron uses a short lookback and best-effort in-process dedupe (duplicate risk across cold starts). Local script uses `.data/x-gm-alerts.json` / `.data/x-handles.json` (gitignored).
 
 ## Ops checklist
 

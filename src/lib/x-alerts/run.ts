@@ -35,6 +35,8 @@ export type RunSummary = {
   tweets: Array<{
     key: string;
     text: string;
+    fromLabel?: string;
+    toLabel?: string;
     tweetId?: string;
     dryRun?: boolean;
   }>;
@@ -69,17 +71,25 @@ function emptySummary(
   };
 }
 
-async function buildGmPlusTweetText(event: IndexedGmEvent): Promise<string> {
+async function buildGmPlusTweet(event: IndexedGmEvent): Promise<{
+  text: string;
+  fromLabel: string;
+  toLabel: string;
+}> {
   if (event.kind !== "GMPlus" || !event.to) {
-    throw new Error("buildGmPlusTweetText requires a GMPlus event with to");
+    throw new Error("buildGmPlusTweet requires a GMPlus event with to");
   }
   const fromLabel = await displayNameForAddress(event.from);
   const toLabel = await displayNameForAddress(event.to);
-  return formatAlertText({
+  return {
     fromLabel,
     toLabel,
-    txHash: event.txHash,
-  });
+    text: formatAlertText({
+      fromLabel,
+      toLabel,
+      txHash: event.txHash,
+    }),
+  };
 }
 
 export async function runXGmAlerts(): Promise<RunSummary> {
@@ -178,17 +188,17 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     }
 
     try {
-      const text = await buildGmPlusTweetText(event);
+      const { text, fromLabel, toLabel } = await buildGmPlusTweet(event);
 
       if (dryRun) {
-        tweets.push({ key, text, dryRun: true });
+        tweets.push({ key, text, fromLabel, toLabel, dryRun: true });
         // Do NOT mark tweeted / advance cursor on dry-run — allows a later live post.
         posted += 1;
         continue;
       }
 
       const { id } = await postTweet(text);
-      tweets.push({ key, text, tweetId: id });
+      tweets.push({ key, text, fromLabel, toLabel, tweetId: id });
       tweeted.add(key);
       posted += 1;
     } catch (err) {
