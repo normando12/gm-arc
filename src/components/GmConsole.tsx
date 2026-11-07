@@ -36,6 +36,8 @@ import {
   type MockState,
 } from "@/lib/mock";
 import { SignInWithX } from "@/components/SignInWithX";
+import { requestXHandleRegistration } from "@/lib/x-handle-client";
+import { IS_PRIVY_ENABLED } from "@/lib/privy";
 
 type Tab = "gm" | "gmPlus";
 
@@ -110,6 +112,8 @@ export function GmConsole() {
     }
     try {
       await connect({ connector: injected, chainId: ARC_CHAIN_ID });
+      // Connect wallet + Sign in with X → register wallet↔@handle for GM+ tweets.
+      if (IS_PRIVY_ENABLED) requestXHandleRegistration();
     } catch (e) {
       setStatus(e instanceof Error ? e.message : "Connect failed");
     }
@@ -185,6 +189,8 @@ export function GmConsole() {
       return;
     }
     try {
+      // Refresh wallet↔handle map before GM+ so cron can @mention this sender.
+      if (IS_PRIVY_ENABLED) requestXHandleRegistration();
       await ensureArc();
       await writeContractAsync({
         address: CONTRACT_ADDRESS,

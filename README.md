@@ -42,7 +42,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_PRIVY_APP_ID` | for X login | Public id `cmw2ck7cw021d0fjt37otkkxs` — set on Vercel Production yourself, then redeploy. Also **enable Twitter/X** in Privy Login methods |
 | `NEXT_PUBLIC_PRIVY_CLIENT_ID` | optional | Privy app client id (multi-env) |
 | `NEXT_PUBLIC_GM_ARC_X_HANDLE` | optional | Defaults to `GMARCxlm` (`@GMARCxlm`) |
-| `PRIVY_APP_SECRET` | server-only | Do **not** expose as `NEXT_PUBLIC_*`. Needed for X-alert wallet→@handle lookup |
+| `PRIVY_APP_SECRET` | server-only | Do **not** expose as `NEXT_PUBLIC_*`. Needed for `/api/x-handle` + Privy wallet→@handle lookup |
 | `CRON_SECRET` | X alerts | Bearer auth for `/api/cron/x-gm-alerts` |
 | `X_API_KEY` / `X_API_KEY_SECRET` / `X_ACCESS_TOKEN` / `X_ACCESS_TOKEN_SECRET` | X alerts | OAuth 1.0a for **@GMARCxlm** (app permission **Read and write**) |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | X alerts on Vercel | Durable cursor + dedupe |
@@ -53,7 +53,7 @@ Mock mode activates when `NEXT_PUBLIC_MOCK_MODE=true`. With a contract address s
 
 Minimal worker indexes ArcGM logs and posts from **@GMARCxlm** **only for GM+** (directed), e.g.
 `GM sent from @A to @B. Have you GM’d today?` + [explorer.arc.io](https://explorer.arc.io) tx link.
-Basic `gm()` is not tweeted. Wallet→X via Privy when linked; otherwise shortened address (both parties).
+Basic `gm()` is not tweeted. Wallet→X via app registry (Sign in with X + Connect wallet → `POST /api/x-handle`) or Privy wallet link; otherwise shortened address (both parties).
 
 - Docs + env / scopes / blockers: [`docs/x-gm-alerts.md`](./docs/x-gm-alerts.md)
 - Vercel Cron: daily `0 12 * * *` UTC → `/api/cron/x-gm-alerts` (Hobby limit; set `CRON_SECRET`)

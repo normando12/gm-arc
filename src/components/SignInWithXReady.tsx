@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLogin, usePrivy } from "@privy-io/react-auth";
+import { requestXHandleRegistration } from "@/lib/x-handle-client";
 import { GM_ARC_X_MENTION } from "@/lib/privy";
 
 function twitterUsername(
@@ -28,6 +29,8 @@ export function SignInWithXReady() {
     onComplete: () => {
       // X OAuth alone is enough — no Privy embedded wallet required for GM.
       setError(null);
+      // Register wallet↔@handle when wagmi is already connected (no-op otherwise).
+      requestXHandleRegistration();
     },
     onError: (err) => {
       setError(errorMessage(err));

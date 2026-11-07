@@ -2,11 +2,13 @@
 
 import { PrivyProvider } from "@privy-io/react-auth";
 import type { ReactNode } from "react";
+import { RegisterXHandle } from "@/components/RegisterXHandle";
 import { IS_PRIVY_ENABLED, PRIVY_APP_ID, PRIVY_CLIENT_ID } from "@/lib/privy";
 
 /**
  * Wraps children with Privy only when NEXT_PUBLIC_PRIVY_APP_ID is set.
  * Wallet (wagmi) stays independent — X login is optional like gm.ink.
+ * RegisterXHandle maps connected wagmi wallet → X @handle for GM+ tweets.
  */
 export function PrivyProviders({ children }: { children: ReactNode }) {
   if (!IS_PRIVY_ENABLED) {
@@ -36,6 +38,7 @@ export function PrivyProviders({ children }: { children: ReactNode }) {
         },
       }}
     >
+      <RegisterXHandle />
       {children}
     </PrivyProvider>
   );
