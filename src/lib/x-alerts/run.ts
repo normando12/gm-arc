@@ -17,6 +17,10 @@ export type RunSummary = {
   dryRun: boolean;
   fromBlock: number;
   toBlock: number;
+  /** Chain tip at run start — may be ahead of toBlock when capped. */
+  tipBlock: number;
+  /** True when this run scanned less than tip (catch-up continues next cron). */
+  cappedScan: boolean;
   cursorLastBlock: number | null;
   /** Total logs in range (GM + GM+). */
   found: number;
@@ -45,6 +49,8 @@ function emptySummary(
 ): RunSummary {
   return {
     skipped: undefined,
+    tipBlock: partial.toBlock,
+    cappedScan: false,
     found: 0,
     foundGmPlus: 0,
     skippedBasicGm: 0,
@@ -127,16 +133,25 @@ export async function runXGmAlerts(): Promise<RunSummary> {
       dryRun,
       fromBlock,
       toBlock: tip,
+      tipBlock: tip,
+      cappedScan: false,
       cursorLastBlock,
       clearedState,
       startBlockOverride,
     });
   }
 
+  // Hobby ~60s: never scan tip−from if the gap is huge; advance in windows.
+  const toBlock = Math.min(
+    tip,
+    fromBlock + Math.max(1, xAlertsConfig.maxScanBlocks) - 1,
+  );
+  const cappedScan = toBlock < tip;
+
   const allEvents = await fetchGmEvents({
     client,
     fromBlock: BigInt(fromBlock),
-    toBlock: BigInt(tip),
+    toBlock: BigInt(toBlock),
   });
 
   // Tweet ONLY directed GM+ (to ≠ 0). Basic GM is indexed for cursor but never posted.
@@ -190,7 +205,9 @@ export async function runXGmAlerts(): Promise<RunSummary> {
       ok: errors.length === 0,
       dryRun: true,
       fromBlock,
-      toBlock: tip,
+      toBlock,
+      tipBlock: tip,
+      cappedScan,
       cursorLastBlock,
       found: allEvents.length,
       foundGmPlus: events.length,
@@ -209,7 +226,7 @@ export async function runXGmAlerts(): Promise<RunSummary> {
   }
 
   // Advance cursor only through successfully handled events (or empty range).
-  let lastBlock = tip;
+  let lastBlock = toBlock;
   if (errors.length > 0 && tweets.length > 0) {
     const lastOk = events.find(
       (e) => eventKey(e.txHash, e.logIndex) === tweets[tweets.length - 1]?.key,
@@ -243,7 +260,9 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     ok: errors.length === 0,
     dryRun: false,
     fromBlock,
-    toBlock: tip,
+    toBlock,
+    tipBlock: tip,
+    cappedScan,
     cursorLastBlock,
     found: allEvents.length,
     foundGmPlus: events.length,
