@@ -44,6 +44,12 @@ export const xAlertsConfig = {
    */
   maxScanBlocks: envInt("X_ALERTS_MAX_SCAN_BLOCKS", 1_000),
   /**
+   * If tip − fromBlock exceeds this, jump to tip − lookback (skip backlog).
+   * Keeps daily Hobby cron useful without manual X_ALERTS_START_BLOCK.
+   * Default 3000 (= 3× default maxScanBlocks). Still scans ≤ maxScanBlocks/run.
+   */
+  autoJumpLagBlocks: envInt("X_ALERTS_AUTO_JUMP_LAG", 3_000),
+  /**
    * eth_getLogs initial chunk. Bisects on Arc LimitExceededRpcError.
    */
   logChunkBlocks: envInt("X_ALERTS_LOG_CHUNK", 400),

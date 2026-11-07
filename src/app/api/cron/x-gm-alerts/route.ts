@@ -70,6 +70,8 @@ async function handle(req: Request): Promise<NextResponse> {
       tipBlock: summary.tipBlock,
       cappedScan: summary.cappedScan,
       cursorLastBlock: summary.cursorLastBlock,
+      autoJumped: summary.autoJumped,
+      lagBlocks: summary.lagBlocks,
       foundGmPlus: summary.foundGmPlus,
       posted: summary.posted,
       errorCount: summary.errors.length,

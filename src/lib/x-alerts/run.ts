@@ -1,5 +1,6 @@
 import { hasUpstash, hasXCredentials, xAlertsConfig } from "./config";
 import { formatAlertText, type IndexedGmEvent } from "./format";
+import { resolveFromBlock } from "./from-block";
 import { createArcClient, fetchGmEvents } from "./index-events";
 import { displayNameForAddress } from "./resolve";
 import {
@@ -22,6 +23,10 @@ export type RunSummary = {
   /** True when this run scanned less than tip (catch-up continues next cron). */
   cappedScan: boolean;
   cursorLastBlock: number | null;
+  /** True when lag behind tip exceeded autoJumpLag — jumped to tip−lookback. */
+  autoJumped: boolean;
+  /** tip − resume + 1 when resuming a cursor; null if no cursor / START_BLOCK. */
+  lagBlocks: number | null;
   /** Total logs in range (GM + GM+). */
   found: number;
   /** Directed GM+ only — what we tweet. */
@@ -60,6 +65,8 @@ function emptySummary(
     skippedDedupe: 0,
     clearedState: false,
     startBlockOverride: false,
+    autoJumped: false,
+    lagBlocks: null,
     cursorLastBlock: null,
     tweets: [],
     stateBackend: hasUpstash() ? "upstash" : "local-or-memory",
@@ -123,18 +130,30 @@ export async function runXGmAlerts(): Promise<RunSummary> {
   /**
    * From-block resolution:
    * 1) If X_ALERTS_START_BLOCK is set, it wins (rewind past a bad Redis cursor).
-   * 2) Else resume after cursor.
+   * 2) Else resume after cursor — but if tip lag ≫ maxScan, jump to tip−lookback
+   *    (Hobby daily cron cannot catch up 1k blocks/run; skip stale backlog).
    * 3) Else tip − lookback.
    */
-  let fromBlock: number;
-  let startBlockOverride = false;
-  if (xAlertsConfig.startBlock != null) {
-    fromBlock = xAlertsConfig.startBlock;
-    startBlockOverride = true;
-  } else if (cursorLastBlock != null) {
-    fromBlock = cursorLastBlock + 1;
-  } else {
-    fromBlock = Math.max(0, tip - xAlertsConfig.lookbackBlocks);
+  const resolved = resolveFromBlock({
+    tip,
+    cursorLastBlock,
+    startBlock: xAlertsConfig.startBlock,
+    lookbackBlocks: xAlertsConfig.lookbackBlocks,
+    autoJumpLagBlocks: xAlertsConfig.autoJumpLagBlocks,
+  });
+  const fromBlock = resolved.fromBlock;
+  const startBlockOverride = resolved.startBlockOverride;
+  const autoJumped = resolved.autoJumped;
+  const lagBlocks = resolved.lagBlocks;
+
+  if (autoJumped) {
+    console.info("[x-gm-alerts] auto-jump", {
+      lagBlocks,
+      autoJumpLagBlocks: xAlertsConfig.autoJumpLagBlocks,
+      fromBlock,
+      tip,
+      lookbackBlocks: xAlertsConfig.lookbackBlocks,
+    });
   }
 
   if (fromBlock > tip) {
@@ -148,6 +167,8 @@ export async function runXGmAlerts(): Promise<RunSummary> {
       cursorLastBlock,
       clearedState,
       startBlockOverride,
+      autoJumped,
+      lagBlocks,
     });
   }
 
@@ -219,6 +240,8 @@ export async function runXGmAlerts(): Promise<RunSummary> {
       tipBlock: tip,
       cappedScan,
       cursorLastBlock,
+      autoJumped,
+      lagBlocks,
       found: allEvents.length,
       foundGmPlus: events.length,
       skippedBasicGm,
@@ -274,6 +297,8 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     tipBlock: tip,
     cappedScan,
     cursorLastBlock,
+    autoJumped,
+    lagBlocks,
     found: allEvents.length,
     foundGmPlus: events.length,
     skippedBasicGm,
