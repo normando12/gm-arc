@@ -21,9 +21,9 @@ export function createArcClient(): PublicClient {
   return createPublicClient({
     chain: arc,
     transport: http(xAlertsConfig.rpcUrl, {
-      timeout: 30_000,
-      retryCount: 2,
-      retryDelay: 400,
+      timeout: 20_000,
+      retryCount: 1,
+      retryDelay: 250,
     }),
   });
 }
@@ -94,8 +94,7 @@ async function getLogsAdaptive<TLog>(
       throw err;
     }
     const mid = fromBlock + (toBlock - fromBlock) / 2n;
-    // Brief pause before halves — rate / burst limits on public RPC.
-    if (depth > 0) await sleep(150 * Math.min(depth, 4));
+    if (depth > 0) await sleep(80 * Math.min(depth, 3));
     const left = await getLogsAdaptive(fetchRange, fromBlock, mid, depth + 1);
     const right = await getLogsAdaptive(
       fetchRange,
@@ -108,9 +107,7 @@ async function getLogsAdaptive<TLog>(
 }
 
 /**
- * Index directed GM+ for tweets.
- * - Prefer v2 ABI `GMPlus` on the configured contract.
- * - Also accept legacy v1 topic0 (non-zero `to`) if still pointed at the old address.
+ * Index directed GM+ for tweets (v2 ABI; optional legacy v1 topic).
  */
 export async function fetchGmEvents(params: {
   client: PublicClient;
@@ -126,7 +123,6 @@ export async function fetchGmEvents(params: {
   for (let start = fromBlock; start <= toBlock; start += chunk + 1n) {
     const end = start + chunk > toBlock ? toBlock : start + chunk;
 
-    // Sequential (not parallel) to reduce Arc public RPC burst limits.
     const v2Logs = await getLogsAdaptive(
       (a, b) =>
         client.getLogs({
@@ -135,18 +131,6 @@ export async function fetchGmEvents(params: {
           fromBlock: a,
           toBlock: b,
         }),
-      start,
-      end,
-    );
-
-    const v1Logs = await getLogsAdaptive(
-      (a, b) =>
-        client.getLogs({
-          address,
-          fromBlock: a,
-          toBlock: b,
-          topics: [ARC_GM_V1_EVENT_TOPIC],
-        } as Parameters<PublicClient["getLogs"]>[0]) as Promise<Log[]>,
       start,
       end,
     );
@@ -162,6 +146,20 @@ export async function fetchGmEvents(params: {
       seen.add(key);
       out.push(item);
     }
+
+    if (!xAlertsConfig.scanV1Topic) continue;
+
+    const v1Logs = await getLogsAdaptive(
+      (a, b) =>
+        client.getLogs({
+          address,
+          fromBlock: a,
+          toBlock: b,
+          topics: [ARC_GM_V1_EVENT_TOPIC],
+        } as Parameters<PublicClient["getLogs"]>[0]) as Promise<Log[]>,
+      start,
+      end,
+    );
 
     for (const log of v1Logs) {
       const from = topicAddress(log.topics[1]);

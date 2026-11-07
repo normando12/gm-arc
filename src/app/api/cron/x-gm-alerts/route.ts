@@ -6,7 +6,10 @@ import { runXGmAlerts } from "@/lib/x-alerts/run";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-/** Allow enough time for getLogs + Privy + a few tweets. */
+/**
+ * Vercel Hobby serverless hard-cap is 60s — keep scans capped in run.ts
+ * (maxScanBlocks) so we finish under this. Pro can raise via env/project.
+ */
 export const maxDuration = 60;
 
 function json(data: unknown, status: number): NextResponse {
@@ -64,6 +67,8 @@ async function handle(req: Request): Promise<NextResponse> {
       dryRun: summary.dryRun,
       fromBlock: summary.fromBlock,
       toBlock: summary.toBlock,
+      tipBlock: summary.tipBlock,
+      cappedScan: summary.cappedScan,
       cursorLastBlock: summary.cursorLastBlock,
       foundGmPlus: summary.foundGmPlus,
       posted: summary.posted,

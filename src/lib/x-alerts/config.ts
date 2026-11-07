@@ -35,14 +35,22 @@ export const xAlertsConfig = {
     : null,
   /**
    * Blocks to scan when no Redis/local cursor exists.
-   * Default 5000 — a too-small lookback (e.g. 300) can miss recent GM+ on first run.
+   * Kept modest for Vercel Hobby 60s — catch-up uses maxScanBlocks per run.
    */
-  lookbackBlocks: envInt("X_ALERTS_LOOKBACK_BLOCKS", 5_000),
+  lookbackBlocks: envInt("X_ALERTS_LOOKBACK_BLOCKS", 800),
   /**
-   * eth_getLogs initial chunk size. Arc public RPC throws LimitExceededRpcError
-   * on large ranges — default 200; indexer bisects further on limit errors.
+   * Cap blocks processed in a single cron invocation (Hobby ~60s).
+   * Cursor advances through this window so later runs catch up.
    */
-  logChunkBlocks: envInt("X_ALERTS_LOG_CHUNK", 200),
+  maxScanBlocks: envInt("X_ALERTS_MAX_SCAN_BLOCKS", 1_000),
+  /**
+   * eth_getLogs initial chunk. Bisects on Arc LimitExceededRpcError.
+   */
+  logChunkBlocks: envInt("X_ALERTS_LOG_CHUNK", 400),
+  /**
+   * Also scan legacy v1 topic0 (doubles RPC). Default off — v2 contract only.
+   */
+  scanV1Topic: env("X_ALERTS_SCAN_V1") === "true",
   maxTweetsPerRun: envInt("X_ALERTS_MAX_TWEETS", 10),
   dryRun: env("X_ALERTS_DRY_RUN") === "true",
   /**
