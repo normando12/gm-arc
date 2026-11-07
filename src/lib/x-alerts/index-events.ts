@@ -20,7 +20,11 @@ const ZERO = "0x0000000000000000000000000000000000000000";
 export function createArcClient(): PublicClient {
   return createPublicClient({
     chain: arc,
-    transport: http(xAlertsConfig.rpcUrl),
+    transport: http(xAlertsConfig.rpcUrl, {
+      timeout: 30_000,
+      retryCount: 2,
+      retryDelay: 400,
+    }),
   });
 }
 
@@ -47,6 +51,62 @@ function asGmPlus(
   };
 }
 
+function isLogsLimitError(err: unknown): boolean {
+  const msg = String(
+    err && typeof err === "object" && "message" in err
+      ? (err as { message: unknown }).message
+      : err,
+  ).toLowerCase();
+  const name = String(
+    err && typeof err === "object" && "name" in err
+      ? (err as { name: unknown }).name
+      : "",
+  ).toLowerCase();
+  return (
+    name.includes("limitexceeded") ||
+    msg.includes("limit exceeded") ||
+    msg.includes("query returned more than") ||
+    msg.includes("block range") ||
+    msg.includes("response size") ||
+    msg.includes("log response size") ||
+    msg.includes("-32005")
+  );
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * Fetch logs for a range; on Arc RPC LimitExceeded, bisect the block window and retry.
+ */
+async function getLogsAdaptive<TLog>(
+  fetchRange: (fromBlock: bigint, toBlock: bigint) => Promise<TLog[]>,
+  fromBlock: bigint,
+  toBlock: bigint,
+  depth = 0,
+): Promise<TLog[]> {
+  if (fromBlock > toBlock) return [];
+  try {
+    return await fetchRange(fromBlock, toBlock);
+  } catch (err) {
+    if (!isLogsLimitError(err) || fromBlock === toBlock) {
+      throw err;
+    }
+    const mid = fromBlock + (toBlock - fromBlock) / 2n;
+    // Brief pause before halves — rate / burst limits on public RPC.
+    if (depth > 0) await sleep(150 * Math.min(depth, 4));
+    const left = await getLogsAdaptive(fetchRange, fromBlock, mid, depth + 1);
+    const right = await getLogsAdaptive(
+      fetchRange,
+      mid + 1n,
+      toBlock,
+      depth + 1,
+    );
+    return left.concat(right);
+  }
+}
+
 /**
  * Index directed GM+ for tweets.
  * - Prefer v2 ABI `GMPlus` on the configured contract.
@@ -66,20 +126,30 @@ export async function fetchGmEvents(params: {
   for (let start = fromBlock; start <= toBlock; start += chunk + 1n) {
     const end = start + chunk > toBlock ? toBlock : start + chunk;
 
-    const [v2Logs, v1Logs] = await Promise.all([
-      client.getLogs({
-        address,
-        event: gmPlusV2,
-        fromBlock: start,
-        toBlock: end,
-      }),
-      client.getLogs({
-        address,
-        fromBlock: start,
-        toBlock: end,
-        topics: [ARC_GM_V1_EVENT_TOPIC],
-      } as Parameters<PublicClient["getLogs"]>[0]) as Promise<Log[]>,
-    ]);
+    // Sequential (not parallel) to reduce Arc public RPC burst limits.
+    const v2Logs = await getLogsAdaptive(
+      (a, b) =>
+        client.getLogs({
+          address,
+          event: gmPlusV2,
+          fromBlock: a,
+          toBlock: b,
+        }),
+      start,
+      end,
+    );
+
+    const v1Logs = await getLogsAdaptive(
+      (a, b) =>
+        client.getLogs({
+          address,
+          fromBlock: a,
+          toBlock: b,
+          topics: [ARC_GM_V1_EVENT_TOPIC],
+        } as Parameters<PublicClient["getLogs"]>[0]) as Promise<Log[]>,
+      start,
+      end,
+    );
 
     for (const log of v2Logs) {
       const from = log.args.from;
