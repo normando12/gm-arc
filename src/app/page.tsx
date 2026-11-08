@@ -1,5 +1,7 @@
-import { DawnBackground } from "@/components/DawnBackground";
+import { FloatingSideBubbles } from "@/components/FloatingSideBubbles";
 import { GmConsole } from "@/components/GmConsole";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SpaceTalkshowBackground } from "@/components/SpaceTalkshowBackground";
 import {
   ARC_BRIDGE_URL,
   GM_PLUS_FEE_USDC,
@@ -12,14 +14,22 @@ import { GM_ARC_X_MENTION, GM_ARC_X_URL } from "@/lib/privy";
 export default function Home() {
   return (
     <div className="page">
-      <DawnBackground />
+      <SpaceTalkshowBackground />
 
-      <header className="site-header">
-        <span>ARC MAINNET</span>
-      </header>
+      <SiteHeader />
+
+      <section className="hero-banner" aria-label="GM ARC talk-show banner">
+        {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed decorative hero art */}
+        <img
+          className="hero-banner-img"
+          src="/talkshow-banner-v3.png"
+          alt="GM ARC space talk-show panel — cast behind the desk with GM speech bubble and ARC NETWORK"
+        />
+        <div className="hero-banner-fade" aria-hidden />
+      </section>
 
       <main className="site-main">
-        <h1 className="brand">gm·arc</h1>
+        <h1 className="sr-only">GM ARC</h1>
         <p className="tagline">
           Say good morning onchain. One tap a day — or send a GM+ to a fren.
         </p>
@@ -28,7 +38,10 @@ export default function Home() {
           {GM_PLUS_OWNER_FEE_USDC} ops)
           {IS_MOCK_MODE ? " · running in mock mode" : ""}
         </p>
-        <GmConsole />
+        <div className="console-stage">
+          <FloatingSideBubbles />
+          <GmConsole />
+        </div>
         <div className="after-console">
           <a
             className="bridge-cta"

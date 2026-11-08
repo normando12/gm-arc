@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   useAccount,
   useConnect,
-  useDisconnect,
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
@@ -35,11 +34,22 @@ import {
   saveMock,
   type MockState,
 } from "@/lib/mock";
+import { ConnectWalletButton } from "@/components/ConnectWalletButton";
+import { GmActionOverlay } from "@/components/GmActionOverlay";
 import { SignInWithX } from "@/components/SignInWithX";
+import {
+  playGmPlusSoundOnce,
+  replayGmPlusSoundFromGesture,
+  unlockGmPlusSound,
+} from "@/lib/gmplus-sound";
 import { requestXHandleRegistration } from "@/lib/x-handle-client";
 import { IS_PRIVY_ENABLED } from "@/lib/privy";
 
 type Tab = "gm" | "gmPlus";
+type ActionPhase = "loading" | "success";
+
+const LOADING_MS = 2000;
+const SUCCESS_MS = 2600;
 
 export function GmConsole() {
   const [tab, setTab] = useState<Tab>("gm");
@@ -48,11 +58,13 @@ export function GmConsole() {
   const [now, setNow] = useState(() => Date.now());
   const [status, setStatus] = useState<string | null>(null);
   const [statusHash, setStatusHash] = useState<string | null>(null);
+  const [actionKind, setActionKind] = useState<Tab>("gm");
+  const [actionPhase, setActionPhase] = useState<ActionPhase | null>(null);
+  const [actionPulse, setActionPulse] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   const { address, isConnected, chainId } = useAccount();
   const { connect, connectors, isPending: connecting } = useConnect();
-  const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
   const { writeContractAsync, data: txHash, isPending: writing } =
     useWriteContract();
@@ -69,14 +81,36 @@ export function GmConsole() {
     return () => window.clearInterval(id);
   }, []);
 
+  /** Loading circle ~2s, then speech-bubble success burst. */
+  const playSuccessSequence = useCallback((kind: Tab) => {
+    setActionKind(kind);
+    setActionPhase("loading");
+    setActionPulse((n) => n + 1);
+  }, []);
+
+  useEffect(() => {
+    if (!actionPulse || actionPhase !== "loading") return;
+    const toSuccess = window.setTimeout(() => setActionPhase("success"), LOADING_MS);
+    return () => window.clearTimeout(toSuccess);
+  }, [actionPulse, actionPhase]);
+
+  useEffect(() => {
+    if (!actionPulse || actionPhase !== "success") return;
+    if (actionKind === "gmPlus") playGmPlusSoundOnce();
+    const clear = window.setTimeout(() => setActionPhase(null), SUCCESS_MS);
+    return () => window.clearTimeout(clear);
+  }, [actionPulse, actionPhase, actionKind]);
+
   useEffect(() => {
     if (confirmed && txHash) {
+      const kind = tab;
       setStatus(
-        tab === "gm" ? "GM recorded on Arc" : "GM+ sent on Arc",
+        kind === "gm" ? "GM recorded on Arc" : "GM+ sent on Arc",
       );
       setStatusHash(txHash);
+      playSuccessSequence(kind);
     }
-  }, [confirmed, txHash, tab]);
+  }, [confirmed, txHash, tab, playSuccessSequence]);
 
   const liveAccount = address;
   const mockReadyAt = mock ? mockNextGM(mock.lastGM, now) : 0;
@@ -96,12 +130,14 @@ export function GmConsole() {
 
   const readyAt = IS_MOCK_MODE ? mockReadyAt : onchainReadyAt;
   const onCooldown = readyAt > now;
-  const busy = writing || confirming || connecting;
+  const actionBusy = actionPhase === "loading";
+  const busy = writing || confirming || connecting || actionBusy;
 
   const onResetMock = useCallback(() => {
     setMock(resetMock());
     setStatus(null);
     setStatusHash(null);
+    setActionPhase(null);
   }, []);
 
   async function onConnect() {
@@ -128,6 +164,7 @@ export function GmConsole() {
   async function onGm() {
     setStatus(null);
     setStatusHash(null);
+    setActionPhase(null);
 
     if (IS_MOCK_MODE) {
       if (onCooldown) return;
@@ -141,6 +178,7 @@ export function GmConsole() {
       setMock(next);
       setStatus("GM recorded on Arc (mock)");
       setStatusHash(next.lastTx);
+      playSuccessSequence("gm");
       return;
     }
 
@@ -162,8 +200,11 @@ export function GmConsole() {
   }
 
   async function onGmPlus() {
+    // Must run in the click turn so AudioContext can resume (autoplay policy).
+    void unlockGmPlusSound();
     setStatus(null);
     setStatusHash(null);
+    setActionPhase(null);
 
     if (!isAddress(friend)) {
       setStatus("Enter a valid Arc address");
@@ -181,6 +222,7 @@ export function GmConsole() {
       setMock(next);
       setStatus("GM+ sent on Arc (mock)");
       setStatusHash(next.lastTx);
+      playSuccessSequence("gmPlus");
       return;
     }
 
@@ -215,8 +257,22 @@ export function GmConsole() {
     return <div className="console-card console-card--skeleton" />;
   }
 
+  const isSuccessStatus =
+    Boolean(status) &&
+    (status!.startsWith("GM recorded") || status!.startsWith("GM+ sent"));
+
   return (
-    <section className="console-card">
+    <section
+      className={`console-card${actionPhase ? " console-card--celebrate" : ""}`}
+    >
+      <GmActionOverlay
+        key={actionPulse}
+        kind={actionKind}
+        phase={actionPhase}
+        onPlaySound={
+          actionKind === "gmPlus" ? replayGmPlusSoundFromGesture : undefined
+        }
+      />
       <div className="console-top">
         <div className="console-meta">
           {IS_MOCK_MODE ? (
@@ -227,26 +283,12 @@ export function GmConsole() {
           {walletLabel ? <span className="wallet-label">{walletLabel}</span> : null}
         </div>
         <div className="console-actions">
-          <SignInWithX />
-          {IS_MOCK_MODE ? (
-            <button type="button" className="btn-connect" onClick={onConnect}>
-              Connect wallet
-            </button>
-          ) : isConnected ? (
-            <button type="button" className="btn-connect" onClick={() => disconnect()}>
-              {shortAddress(address!)}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="btn-connect"
-              onClick={onConnect}
-              disabled={connecting}
-            >
-              Connect wallet
-            </button>
-          )}
+          <ConnectWalletButton />
         </div>
+      </div>
+
+      <div className="console-x-row">
+        <SignInWithX />
       </div>
 
       <div className="tab-row" role="tablist">
@@ -319,7 +361,10 @@ export function GmConsole() {
       )}
 
       {status ? (
-        <div className="status-box" role="status">
+        <div
+          className={`status-box${isSuccessStatus ? " status-box--success" : ""}`}
+          role="status"
+        >
           <span>{status}</span>
           {statusHash ? (
             IS_MOCK_MODE ? (
@@ -329,6 +374,21 @@ export function GmConsole() {
                 {shortAddress(statusHash, 4)}
               </a>
             )
+          ) : null}
+          {isSuccessStatus && status!.startsWith("GM+ sent") ? (
+            <div className="status-sound">
+              <button
+                type="button"
+                className="status-sound-btn"
+                onClick={replayGmPlusSoundFromGesture}
+              >
+                <span aria-hidden>♪</span> Play sound
+              </button>
+              <span className="status-sound-hint">
+                No sound? Unmute this tab in Chrome (speaker icon), then tap
+                Play.
+              </span>
+            </div>
           ) : null}
         </div>
       ) : null}
