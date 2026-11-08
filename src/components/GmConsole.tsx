@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   useAccount,
   useConnect,
-  useDisconnect,
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
@@ -35,6 +34,7 @@ import {
   saveMock,
   type MockState,
 } from "@/lib/mock";
+import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { SignInWithX } from "@/components/SignInWithX";
 import { requestXHandleRegistration } from "@/lib/x-handle-client";
 import { IS_PRIVY_ENABLED } from "@/lib/privy";
@@ -52,7 +52,6 @@ export function GmConsole() {
 
   const { address, isConnected, chainId } = useAccount();
   const { connect, connectors, isPending: connecting } = useConnect();
-  const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
   const { writeContractAsync, data: txHash, isPending: writing } =
     useWriteContract();
@@ -227,26 +226,12 @@ export function GmConsole() {
           {walletLabel ? <span className="wallet-label">{walletLabel}</span> : null}
         </div>
         <div className="console-actions">
-          <SignInWithX />
-          {IS_MOCK_MODE ? (
-            <button type="button" className="btn-connect" onClick={onConnect}>
-              Connect wallet
-            </button>
-          ) : isConnected ? (
-            <button type="button" className="btn-connect" onClick={() => disconnect()}>
-              {shortAddress(address!)}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="btn-connect"
-              onClick={onConnect}
-              disabled={connecting}
-            >
-              Connect wallet
-            </button>
-          )}
+          <ConnectWalletButton />
         </div>
+      </div>
+
+      <div className="console-x-row">
+        <SignInWithX />
       </div>
 
       <div className="tab-row" role="tablist">

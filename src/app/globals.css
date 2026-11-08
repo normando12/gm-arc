@@ -180,7 +180,8 @@ a {
 }
 
 .site-header a,
-.site-header .header-brand {
+.site-header .header-brand,
+.site-header button {
   pointer-events: auto;
 }
 
@@ -247,17 +248,6 @@ a {
   filter: drop-shadow(0 0 6px rgba(178, 75, 255, 0.7));
 }
 
-.header-x {
-  text-decoration: none;
-  letter-spacing: 0.08em;
-  color: var(--arc-purple-hot);
-  transition: color 0.2s ease, text-shadow 0.2s ease;
-}
-
-.header-x:hover {
-  color: #fff;
-  text-shadow: 0 0 12px rgba(200, 107, 255, 0.65);
-}
 
 /* ——— Full-bleed talk-show banner (dominates first viewport) ——— */
 .hero-banner {
@@ -525,6 +515,23 @@ a {
   align-items: center;
   gap: 0.45rem;
   flex-shrink: 0;
+}
+
+.console-x-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: -0.25rem 0 0.85rem;
+}
+
+.console-x-row .x-auth {
+  align-items: flex-start;
+  max-width: none;
+}
+
+.console-x-row .x-auth-error,
+.console-x-row .x-auth-hint {
+  text-align: left;
 }
 
 .btn-connect {

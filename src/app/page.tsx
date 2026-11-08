@@ -1,6 +1,6 @@
-import { BrandMark } from "@/components/BrandMark";
 import { FloatingSideBubbles } from "@/components/FloatingSideBubbles";
 import { GmConsole } from "@/components/GmConsole";
+import { SiteHeader } from "@/components/SiteHeader";
 import { SpaceTalkshowBackground } from "@/components/SpaceTalkshowBackground";
 import {
   ARC_BRIDGE_URL,
@@ -16,25 +16,7 @@ export default function Home() {
     <div className="page">
       <SpaceTalkshowBackground />
 
-      <header className="site-header">
-        <a className="header-brand" href="/" aria-label="GM ARC home">
-          <BrandMark />
-        </a>
-        <div className="header-right">
-          <span className="header-network">
-            <span className="header-a" aria-hidden />
-            ARC MAINNET
-          </span>
-          <a
-            className="header-x"
-            href={GM_ARC_X_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {GM_ARC_X_MENTION}
-          </a>
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="hero-banner" aria-label="GM ARC talk-show banner">
         {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed decorative hero art */}
