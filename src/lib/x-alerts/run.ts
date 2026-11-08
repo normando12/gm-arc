@@ -23,7 +23,7 @@ export type RunSummary = {
   /** True when this run scanned less than tip (catch-up continues next cron). */
   cappedScan: boolean;
   cursorLastBlock: number | null;
-  /** True when lag behind tip exceeded autoJumpLag — jumped to tip−lookback. */
+  /** True when lag behind tip exceeded autoJumpLag — jumped to tip−maxScan. */
   autoJumped: boolean;
   /** tip − resume + 1 when resuming a cursor; null if no cursor / START_BLOCK. */
   lagBlocks: number | null;
@@ -130,8 +130,9 @@ export async function runXGmAlerts(): Promise<RunSummary> {
   /**
    * From-block resolution:
    * 1) If X_ALERTS_START_BLOCK is set, it wins (rewind past a bad Redis cursor).
-   * 2) Else resume after cursor — but if tip lag ≫ maxScan, jump to tip−lookback
-   *    (Hobby daily cron cannot catch up 1k blocks/run; skip stale backlog).
+   * 2) Else resume after cursor — but if tip lag > autoJumpLag (default =
+   *    maxScan), jump to tip−maxScan so this run covers the newest window
+   *    (Hobby cannot crawl catch-up; skip stale backlog).
    * 3) Else tip − lookback.
    */
   const resolved = resolveFromBlock({
@@ -140,6 +141,7 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     startBlock: xAlertsConfig.startBlock,
     lookbackBlocks: xAlertsConfig.lookbackBlocks,
     autoJumpLagBlocks: xAlertsConfig.autoJumpLagBlocks,
+    maxScanBlocks: xAlertsConfig.maxScanBlocks,
   });
   const fromBlock = resolved.fromBlock;
   const startBlockOverride = resolved.startBlockOverride;
@@ -150,9 +152,9 @@ export async function runXGmAlerts(): Promise<RunSummary> {
     console.info("[x-gm-alerts] auto-jump", {
       lagBlocks,
       autoJumpLagBlocks: xAlertsConfig.autoJumpLagBlocks,
+      maxScanBlocks: xAlertsConfig.maxScanBlocks,
       fromBlock,
       tip,
-      lookbackBlocks: xAlertsConfig.lookbackBlocks,
     });
   }
 
