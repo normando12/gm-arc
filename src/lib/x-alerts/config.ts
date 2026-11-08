@@ -44,11 +44,12 @@ export const xAlertsConfig = {
    */
   maxScanBlocks: envInt("X_ALERTS_MAX_SCAN_BLOCKS", 1_000),
   /**
-   * If tip − fromBlock exceeds this, jump to tip − lookback (skip backlog).
-   * Keeps daily Hobby cron useful without manual X_ALERTS_START_BLOCK.
-   * Default 3000 (= 3× default maxScanBlocks). Still scans ≤ maxScanBlocks/run.
+   * If tip − cursor lag exceeds this, jump to tip − maxScan (skip backlog).
+   * Must be ≤ maxScanBlocks or a dead zone forms: cappedScan crawls empty
+   * history while recent GM+ sit near tip (Hobby lag 2328 < old default 3000).
+   * Default = maxScanBlocks (1000). Still scans ≤ maxScanBlocks/run.
    */
-  autoJumpLagBlocks: envInt("X_ALERTS_AUTO_JUMP_LAG", 3_000),
+  autoJumpLagBlocks: envInt("X_ALERTS_AUTO_JUMP_LAG", 1_000),
   /**
    * eth_getLogs initial chunk. Bisects on Arc LimitExceededRpcError.
    */
