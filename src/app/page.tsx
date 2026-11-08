@@ -18,11 +18,13 @@ export default function Home() {
 
       <SiteHeader />
 
-      {/* Spacer so the fixed full-page art dominates the first viewport */}
-      <section
-        className="hero-banner"
-        aria-label="GM ARC space talk-show panel — cast behind the desk with GM speech bubble and ARC NETWORK"
-      >
+      <section className="hero-banner" aria-label="GM ARC talk-show banner">
+        {/* eslint-disable-next-line @next/next/no-img-element -- decorative hero cast strip */}
+        <img
+          className="hero-banner-img"
+          src="/talkshow-banner-clean.jpg"
+          alt="GM ARC space talk-show panel — cast behind the desk with GM speech bubble and ARC NETWORK"
+        />
         <div className="hero-banner-fade" aria-hidden />
       </section>
 
