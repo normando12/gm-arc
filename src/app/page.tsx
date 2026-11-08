@@ -19,7 +19,7 @@ export default function Home() {
       <SiteHeader />
 
       <section className="hero-banner" aria-label="GM ARC talk-show banner">
-        {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed decorative hero art */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- decorative hero cast strip */}
         <img
           className="hero-banner-img"
           src="/talkshow-banner-clean.jpg"
