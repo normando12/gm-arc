@@ -331,9 +331,136 @@ a {
   font-size: 0.86rem;
 }
 
+/* ——— Console stage + floating side bubbles ——— */
+.console-stage {
+  position: relative;
+  width: min(100%, 420px);
+  z-index: 1;
+}
+
+.float-bubbles {
+  display: none;
+  pointer-events: none;
+}
+
+.float-bubble {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  line-height: 0;
+  filter: drop-shadow(0 10px 22px rgba(40, 10, 90, 0.45));
+  animation: bubble-float 6.5s ease-in-out infinite;
+  transform: rotate(var(--bubble-rot, 0deg));
+  will-change: transform;
+}
+
+.float-bubble-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.88),
+    0 0 0 4px rgba(59, 108, 255, 0.55);
+}
+
+.float-bubble--l1 {
+  width: 92px;
+  height: 92px;
+  left: -118px;
+  top: 8%;
+  animation-duration: 7.2s;
+}
+
+.float-bubble--l2 {
+  width: 64px;
+  height: 64px;
+  left: -78px;
+  top: 42%;
+  animation-duration: 5.6s;
+  animation-delay: -1.4s;
+  opacity: 0.92;
+}
+
+.float-bubble--l3 {
+  width: 78px;
+  height: 78px;
+  left: -132px;
+  top: 68%;
+  animation-duration: 8s;
+  animation-delay: -3.1s;
+}
+
+.float-bubble--r1 {
+  width: 88px;
+  height: 88px;
+  right: -114px;
+  top: 14%;
+  animation-duration: 6.8s;
+  animation-delay: -0.8s;
+}
+
+.float-bubble--r2 {
+  width: 58px;
+  height: 58px;
+  right: -72px;
+  top: 46%;
+  animation-duration: 5.2s;
+  animation-delay: -2.2s;
+  opacity: 0.9;
+}
+
+.float-bubble--r3 {
+  width: 74px;
+  height: 74px;
+  right: -126px;
+  top: 72%;
+  animation-duration: 7.6s;
+  animation-delay: -4s;
+}
+
+@keyframes bubble-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--bubble-rot, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(var(--bubble-rot, 0deg));
+  }
+}
+
+@media (min-width: 900px) {
+  .float-bubbles {
+    display: block;
+  }
+
+  .console-stage {
+    margin-inline: 8rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  .float-bubble--l1 {
+    left: -148px;
+  }
+
+  .float-bubble--l3 {
+    left: -168px;
+  }
+
+  .float-bubble--r1 {
+    right: -144px;
+  }
+
+  .float-bubble--r3 {
+    right: -160px;
+  }
+}
+
 /* ——— Console (interaction surface) ——— */
 .console-card {
-  width: min(100%, 420px);
+  position: relative;
+  z-index: 1;
+  width: 100%;
   padding: 1.05rem 1.1rem 1rem;
   border-radius: 1.45rem;
   background: var(--glass);

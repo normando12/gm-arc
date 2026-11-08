@@ -1,4 +1,5 @@
 import { BrandMark } from "@/components/BrandMark";
+import { FloatingSideBubbles } from "@/components/FloatingSideBubbles";
 import { GmConsole } from "@/components/GmConsole";
 import { SpaceTalkshowBackground } from "@/components/SpaceTalkshowBackground";
 import {
@@ -55,7 +56,10 @@ export default function Home() {
           {GM_PLUS_OWNER_FEE_USDC} ops)
           {IS_MOCK_MODE ? " · running in mock mode" : ""}
         </p>
-        <GmConsole />
+        <div className="console-stage">
+          <FloatingSideBubbles />
+          <GmConsole />
+        </div>
         <div className="after-console">
           <a
             className="bridge-cta"
