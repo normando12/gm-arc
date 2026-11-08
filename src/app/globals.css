@@ -590,14 +590,6 @@ a {
   line-height: 1;
 }
 
-.gm-success-sub {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: rgba(18, 16, 24, 0.55);
-}
-
 .gm-success-bubble[data-kind="gmPlus"] {
   box-shadow:
     0 10px 28px rgba(40, 10, 90, 0.35),

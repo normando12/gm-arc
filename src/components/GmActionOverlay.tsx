@@ -34,9 +34,6 @@ export function GmActionOverlay({ kind, phase }: Props) {
           ☀
         </span>
         <span className="gm-success-label">{label}!</span>
-        <span className="gm-success-sub">
-          {kind === "gmPlus" ? "sent on Arc" : "recorded on Arc"}
-        </span>
       </div>
       <span className="gm-success-spark gm-success-spark--a" aria-hidden />
       <span className="gm-success-spark gm-success-spark--b" aria-hidden />
