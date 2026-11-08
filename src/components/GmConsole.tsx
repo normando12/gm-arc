@@ -196,8 +196,8 @@ export function GmConsole() {
   }
 
   async function onGmPlus() {
-    // Unlock audio on the click gesture so the success sting can play after loading.
-    unlockGmPlusSound();
+    // Must run in the click turn so AudioContext can resume (autoplay policy).
+    void unlockGmPlusSound();
     setStatus(null);
     setStatusHash(null);
     setActionPhase(null);

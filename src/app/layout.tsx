@@ -31,6 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preload" href="/profits-rain-gmplus.mp3" as="audio" />
+      </head>
       <body className={`${fredoka.variable} ${outfit.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
