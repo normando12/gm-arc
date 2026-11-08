@@ -39,7 +39,8 @@ import { GmActionOverlay } from "@/components/GmActionOverlay";
 import { SignInWithX } from "@/components/SignInWithX";
 import {
   playGmPlusSoundOnce,
-  replayGmPlusSoundFromGesture,
+  subscribeGmPlusSoundPlaying,
+  toggleGmPlusSoundFromGesture,
   unlockGmPlusSound,
 } from "@/lib/gmplus-sound";
 import { requestXHandleRegistration } from "@/lib/x-handle-client";
@@ -62,6 +63,7 @@ export function GmConsole() {
   const [actionPhase, setActionPhase] = useState<ActionPhase | null>(null);
   const [actionPulse, setActionPulse] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [soundPlaying, setSoundPlaying] = useState(false);
 
   const { address, isConnected, chainId } = useAccount();
   const { connect, connectors, isPending: connecting } = useConnect();
@@ -75,6 +77,8 @@ export function GmConsole() {
     setMounted(true);
     if (IS_MOCK_MODE) setMock(loadMock());
   }, []);
+
+  useEffect(() => subscribeGmPlusSoundPlaying(setSoundPlaying), []);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -269,8 +273,9 @@ export function GmConsole() {
         key={actionPulse}
         kind={actionKind}
         phase={actionPhase}
-        onPlaySound={
-          actionKind === "gmPlus" ? replayGmPlusSoundFromGesture : undefined
+        soundPlaying={soundPlaying}
+        onToggleSound={
+          actionKind === "gmPlus" ? toggleGmPlusSoundFromGesture : undefined
         }
       />
       <div className="console-top">
@@ -380,14 +385,12 @@ export function GmConsole() {
               <button
                 type="button"
                 className="status-sound-btn"
-                onClick={replayGmPlusSoundFromGesture}
+                onClick={toggleGmPlusSoundFromGesture}
+                aria-pressed={soundPlaying}
               >
-                <span aria-hidden>♪</span> Play sound
+                <span aria-hidden>{soundPlaying ? "⏸" : "♪"}</span>{" "}
+                {soundPlaying ? "Pause sound" : "Play sound"}
               </button>
-              <span className="status-sound-hint">
-                No sound? Unmute this tab in Chrome (speaker icon), then tap
-                Play.
-              </span>
             </div>
           ) : null}
         </div>
