@@ -35,6 +35,7 @@ import {
   type MockState,
 } from "@/lib/mock";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
+import { GmSuccessBurst } from "@/components/GmSuccessBurst";
 import { SignInWithX } from "@/components/SignInWithX";
 import { requestXHandleRegistration } from "@/lib/x-handle-client";
 import { IS_PRIVY_ENABLED } from "@/lib/privy";
@@ -48,6 +49,8 @@ export function GmConsole() {
   const [now, setNow] = useState(() => Date.now());
   const [status, setStatus] = useState<string | null>(null);
   const [statusHash, setStatusHash] = useState<string | null>(null);
+  const [successKind, setSuccessKind] = useState<Tab | null>(null);
+  const [successPulse, setSuccessPulse] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   const { address, isConnected, chainId } = useAccount();
@@ -68,14 +71,27 @@ export function GmConsole() {
     return () => window.clearInterval(id);
   }, []);
 
+  const celebrate = useCallback((kind: Tab) => {
+    setSuccessKind(kind);
+    setSuccessPulse((n) => n + 1);
+  }, []);
+
+  useEffect(() => {
+    if (!successPulse) return;
+    const id = window.setTimeout(() => setSuccessKind(null), 2600);
+    return () => window.clearTimeout(id);
+  }, [successPulse]);
+
   useEffect(() => {
     if (confirmed && txHash) {
+      const kind = tab;
       setStatus(
-        tab === "gm" ? "GM recorded on Arc" : "GM+ sent on Arc",
+        kind === "gm" ? "GM recorded on Arc" : "GM+ sent on Arc",
       );
       setStatusHash(txHash);
+      celebrate(kind);
     }
-  }, [confirmed, txHash, tab]);
+  }, [confirmed, txHash, tab, celebrate]);
 
   const liveAccount = address;
   const mockReadyAt = mock ? mockNextGM(mock.lastGM, now) : 0;
@@ -101,6 +117,7 @@ export function GmConsole() {
     setMock(resetMock());
     setStatus(null);
     setStatusHash(null);
+    setSuccessKind(null);
   }, []);
 
   async function onConnect() {
@@ -127,6 +144,7 @@ export function GmConsole() {
   async function onGm() {
     setStatus(null);
     setStatusHash(null);
+    setSuccessKind(null);
 
     if (IS_MOCK_MODE) {
       if (onCooldown) return;
@@ -140,6 +158,7 @@ export function GmConsole() {
       setMock(next);
       setStatus("GM recorded on Arc (mock)");
       setStatusHash(next.lastTx);
+      celebrate("gm");
       return;
     }
 
@@ -163,6 +182,7 @@ export function GmConsole() {
   async function onGmPlus() {
     setStatus(null);
     setStatusHash(null);
+    setSuccessKind(null);
 
     if (!isAddress(friend)) {
       setStatus("Enter a valid Arc address");
@@ -180,6 +200,7 @@ export function GmConsole() {
       setMock(next);
       setStatus("GM+ sent on Arc (mock)");
       setStatusHash(next.lastTx);
+      celebrate("gmPlus");
       return;
     }
 
@@ -214,8 +235,17 @@ export function GmConsole() {
     return <div className="console-card console-card--skeleton" />;
   }
 
+  const isSuccessStatus =
+    Boolean(status) &&
+    (status!.startsWith("GM recorded") || status!.startsWith("GM+ sent"));
+
   return (
-    <section className="console-card">
+    <section className={`console-card${successKind ? " console-card--celebrate" : ""}`}>
+      <GmSuccessBurst
+        key={successPulse}
+        kind={successKind ?? "gm"}
+        active={Boolean(successKind)}
+      />
       <div className="console-top">
         <div className="console-meta">
           {IS_MOCK_MODE ? (
@@ -304,7 +334,10 @@ export function GmConsole() {
       )}
 
       {status ? (
-        <div className="status-box" role="status">
+        <div
+          className={`status-box${isSuccessStatus ? " status-box--success" : ""}`}
+          role="status"
+        >
           <span>{status}</span>
           {statusHash ? (
             IS_MOCK_MODE ? (

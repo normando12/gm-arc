@@ -462,6 +462,182 @@ a {
     0 0 40px rgba(120, 40, 200, 0.18);
   text-align: left;
   animation: rise-in 0.85s ease 0.08s both;
+  overflow: visible;
+}
+
+.console-card--celebrate {
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 0 48px rgba(178, 75, 255, 0.35);
+}
+
+/* ——— GM / GM+ success speech-bubble ——— */
+.gm-success {
+  position: absolute;
+  left: 50%;
+  top: -1.1rem;
+  z-index: 5;
+  transform: translateX(-50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gm-success-bubble {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 7.5rem;
+  padding: 0.7rem 1.15rem 0.75rem;
+  background: #fff;
+  color: #121018;
+  border: 2.5px solid #1a1028;
+  border-radius: 1.35rem;
+  box-shadow:
+    0 10px 28px rgba(40, 10, 90, 0.35),
+    0 0 0 3px rgba(59, 108, 255, 0.35);
+  animation: gm-bubble-pop 0.55s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+.gm-success-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-right: 2.5px solid #1a1028;
+  border-bottom: 2.5px solid #1a1028;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.gm-success-sun {
+  font-size: 0.95rem;
+  line-height: 1;
+  color: #ffb347;
+  animation: gm-sun-wiggle 1.4s ease-in-out 0.2s both;
+}
+
+.gm-success-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.55rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.gm-success-sub {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(18, 16, 24, 0.55);
+}
+
+.gm-success-bubble[data-kind="gmPlus"] {
+  box-shadow:
+    0 10px 28px rgba(40, 10, 90, 0.35),
+    0 0 0 3px rgba(178, 75, 255, 0.45);
+}
+
+.gm-success-spark {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--arc-purple-hot);
+  clip-path: polygon(
+    50% 0%,
+    62% 38%,
+    100% 50%,
+    62% 62%,
+    50% 100%,
+    38% 62%,
+    0% 50%,
+    38% 38%
+  );
+  filter: drop-shadow(0 0 5px rgba(200, 107, 255, 0.85));
+  animation: gm-spark-pop 0.7s ease-out both;
+}
+
+.gm-success-spark--a {
+  top: -6px;
+  left: calc(50% - 62px);
+  animation-delay: 0.08s;
+}
+
+.gm-success-spark--b {
+  top: -10px;
+  right: calc(50% - 58px);
+  width: 8px;
+  height: 8px;
+  animation-delay: 0.16s;
+}
+
+.gm-success-spark--c {
+  bottom: 4px;
+  left: calc(50% - 78px);
+  width: 7px;
+  height: 7px;
+  background: #7dffa8;
+  animation-delay: 0.22s;
+}
+
+.gm-success-spark--d {
+  bottom: 8px;
+  right: calc(50% - 74px);
+  width: 9px;
+  height: 9px;
+  background: #ffc857;
+  animation-delay: 0.28s;
+}
+
+@keyframes gm-bubble-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) translateY(12px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes gm-sun-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  35% {
+    transform: rotate(-12deg) scale(1.12);
+  }
+  70% {
+    transform: rotate(10deg) scale(1.05);
+  }
+}
+
+@keyframes gm-spark-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
 }
 
 .console-card--skeleton {
@@ -725,12 +901,34 @@ a {
   font-size: 0.86rem;
 }
 
+.status-box--success {
+  background: rgba(40, 90, 70, 0.45);
+  border-color: rgba(125, 255, 168, 0.35);
+  animation: status-success-in 0.45s ease both;
+}
+
 .status-box a,
 .status-box code {
   color: var(--arc-purple-hot);
   text-decoration: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.8rem;
+}
+
+.status-box--success a,
+.status-box--success code {
+  color: #9ef0c4;
+}
+
+@keyframes status-success-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .after-console {
