@@ -3,6 +3,18 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Privy ships modern ESM packages that Next should transpile.
   transpilePackages: ["@privy-io/react-auth"],
+  // Bust sticky Try Live / browser caches for cast banner JPGs
+  async headers() {
+    return [
+      {
+        source: "/cast-hero-:version.jpg",
+        headers: [
+          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, max-age=0" },
+          { key: "Pragma", value: "no-cache" },
+        ],
+      },
+    ];
+  },
   // Keep webpack polyfill shims for walletconnect / Privy deps without mutating
   // Next's externals (which may be a function and must not be spread).
   webpack: (config) => {
