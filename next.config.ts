@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/talkshow-cast-:version.jpg",
+        source: "/cast-hero-:version.jpg",
         headers: [
           { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, max-age=0" },
           { key: "Pragma", value: "no-cache" },
