@@ -301,9 +301,13 @@ a {
 .hero-banner-img {
   display: block;
   width: 100%;
-  height: clamp(260px, 52vh, 580px);
+  height: auto;
+  /* Match banner intrinsic ratio so desk nameplates stay in frame */
+  aspect-ratio: 1280 / 423;
+  max-height: min(52vh, 560px);
   object-fit: cover;
-  object-position: center 42%;
+  /* Anchor to desk — cover+center-42% was cropping SAM / TIMOTHY BAKER */
+  object-position: center bottom;
   user-select: none;
   pointer-events: none;
 }
@@ -313,12 +317,13 @@ a {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 32%;
+  /* Keep fade below nameplate band (was 32% and washed out desk text) */
+  height: 14%;
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(7, 0, 21, 0.35) 45%,
-    rgba(7, 0, 21, 0.82) 100%
+    rgba(7, 0, 21, 0.22) 50%,
+    rgba(7, 0, 21, 0.7) 100%
   );
   pointer-events: none;
 }
@@ -1179,8 +1184,8 @@ a {
   }
 
   .hero-banner-img {
-    height: clamp(180px, 38vh, 280px);
-    object-position: center 40%;
+    max-height: min(38vh, 280px);
+    object-position: center bottom;
   }
 
   .site-main {
