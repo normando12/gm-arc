@@ -37,7 +37,11 @@ import {
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { GmActionOverlay } from "@/components/GmActionOverlay";
 import { SignInWithX } from "@/components/SignInWithX";
-import { playGmPlusSoundOnce, unlockGmPlusSound } from "@/lib/gmplus-sound";
+import {
+  playGmPlusSoundOnce,
+  replayGmPlusSoundFromGesture,
+  unlockGmPlusSound,
+} from "@/lib/gmplus-sound";
 import { requestXHandleRegistration } from "@/lib/x-handle-client";
 import { IS_PRIVY_ENABLED } from "@/lib/privy";
 
@@ -265,6 +269,9 @@ export function GmConsole() {
         key={actionPulse}
         kind={actionKind}
         phase={actionPhase}
+        onPlaySound={
+          actionKind === "gmPlus" ? replayGmPlusSoundFromGesture : undefined
+        }
       />
       <div className="console-top">
         <div className="console-meta">
@@ -367,6 +374,21 @@ export function GmConsole() {
                 {shortAddress(statusHash, 4)}
               </a>
             )
+          ) : null}
+          {isSuccessStatus && status!.startsWith("GM+ sent") ? (
+            <div className="status-sound">
+              <button
+                type="button"
+                className="status-sound-btn"
+                onClick={replayGmPlusSoundFromGesture}
+              >
+                <span aria-hidden>♪</span> Play sound
+              </button>
+              <span className="status-sound-hint">
+                No sound? Unmute this tab in Chrome (speaker icon), then tap
+                Play.
+              </span>
+            </div>
           ) : null}
         </div>
       ) : null}
