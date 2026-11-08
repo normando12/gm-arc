@@ -1,9 +1,6 @@
 /**
  * GM+ success sting via Web Audio (survives the ~2s loading delay after click).
- * Unlock on the Send GM+ user gesture; play once on success.
- *
- * Note: Chrome can mute the *tab/site* (speaker ✕ on the tab). That mute cannot
- * be cleared from JS — show a Play/unmute cue so the user can fix it.
+ * Unlock on the Send GM+ user gesture; play once on success; pause/resume via UI.
  */
 
 const SRC = "/profits-rain-gmplus.mp3";
@@ -15,6 +12,23 @@ let loadPromise: Promise<AudioBuffer> | null = null;
 let unlocked = false;
 let playing = false;
 let activeSource: AudioBufferSourceNode | null = null;
+/** Buffer offset (seconds) at the moment the current/last source started. */
+let offsetAtStart = 0;
+/** `AudioContext.currentTime` when the current source started. */
+let startedAt = 0;
+
+type PlayingListener = (playing: boolean) => void;
+const playingListeners = new Set<PlayingListener>();
+
+function notifyPlaying(): void {
+  for (const listener of playingListeners) listener(playing);
+}
+
+function setPlaying(next: boolean): void {
+  if (playing === next) return;
+  playing = next;
+  notifyPlaying();
+}
 
 function getCtx(): AudioContext {
   if (!ctx) {
@@ -76,6 +90,13 @@ async function ensureBuffer(): Promise<AudioBuffer> {
   return loadPromise;
 }
 
+function currentOffset(): number {
+  if (!playing || !ctx) return offsetAtStart;
+  const elapsed = ctx.currentTime - startedAt;
+  const duration = buffer?.duration ?? Number.POSITIVE_INFINITY;
+  return Math.min(offsetAtStart + elapsed, duration);
+}
+
 /**
  * Call synchronously from the Send GM+ click handler (before any await)
  * so the browser treats AudioContext.resume as a user gesture.
@@ -109,23 +130,7 @@ export function unlockGmPlusSound(): void {
   }
 }
 
-function stopActive(): void {
-  if (!activeSource) return;
-  try {
-    activeSource.stop();
-  } catch {
-    /* already stopped */
-  }
-  activeSource = null;
-  playing = false;
-}
-
-/** Play once on successful GM+ (not GM). */
-export async function playGmPlusSoundOnce(): Promise<void> {
-  if (playing) {
-    console.info(LOG, "already playing — skip");
-    return;
-  }
+async function startPlayback(fromOffset: number): Promise<void> {
   try {
     const c = getCtx();
     if (c.state === "suspended") {
@@ -136,40 +141,103 @@ export async function playGmPlusSoundOnce(): Promise<void> {
       console.warn(LOG, "playing without prior unlock — may be blocked");
     }
     const buf = await ensureBuffer();
+    const safeOffset =
+      fromOffset > 0 && fromOffset < buf.duration ? fromOffset : 0;
+
+    if (activeSource) {
+      try {
+        activeSource.onended = null;
+        activeSource.stop();
+      } catch {
+        /* already stopped */
+      }
+      activeSource = null;
+    }
+
     const src = c.createBufferSource();
     src.buffer = buf;
     const gain = c.createGain();
     gain.gain.value = 1;
     src.connect(gain);
     gain.connect(c.destination);
-    playing = true;
+
+    offsetAtStart = safeOffset;
+    startedAt = c.currentTime;
     activeSource = src;
+    setPlaying(true);
+
     src.onended = () => {
-      playing = false;
+      if (activeSource !== src) return;
       activeSource = null;
+      offsetAtStart = 0;
+      setPlaying(false);
       console.info(LOG, "playback ended");
     };
-    src.start(0);
+
+    src.start(0, safeOffset);
     console.info(LOG, "playback started", {
       duration: buf.duration,
+      offset: safeOffset,
       ctx: c.state,
-      tip: "If silent, unmute this Chrome tab (speaker icon), then use Play sound",
     });
   } catch (err) {
-    playing = false;
     activeSource = null;
+    setPlaying(false);
     console.error(LOG, "play failed", err);
   }
 }
 
+/** Play once on successful GM+ (not GM). Starts from the beginning. */
+export async function playGmPlusSoundOnce(): Promise<void> {
+  if (playing) {
+    console.info(LOG, "already playing — skip");
+    return;
+  }
+  offsetAtStart = 0;
+  await startPlayback(0);
+}
+
+function pauseGmPlusSound(): void {
+  if (!playing) return;
+  offsetAtStart = currentOffset();
+  if (activeSource) {
+    try {
+      activeSource.onended = null;
+      activeSource.stop();
+    } catch {
+      /* already stopped */
+    }
+    activeSource = null;
+  }
+  setPlaying(false);
+  console.info(LOG, "paused", { offset: offsetAtStart });
+}
+
 /**
- * Explicit user tap — re-unlock + replay (helps after Chrome tab mute unmute).
+ * Explicit user tap — pause if playing, otherwise resume (or restart from 0).
  */
-export function replayGmPlusSoundFromGesture(): void {
-  console.info(LOG, "replay from user gesture");
-  stopActive();
+export function toggleGmPlusSoundFromGesture(): void {
+  console.info(LOG, "toggle from user gesture", { playing, offset: offsetAtStart });
+  if (playing) {
+    pauseGmPlusSound();
+    return;
+  }
   unlockGmPlusSound();
-  void playGmPlusSoundOnce();
+  void startPlayback(offsetAtStart);
+}
+
+export function isGmPlusSoundPlaying(): boolean {
+  return playing;
+}
+
+export function subscribeGmPlusSoundPlaying(
+  listener: PlayingListener,
+): () => void {
+  playingListeners.add(listener);
+  listener(playing);
+  return () => {
+    playingListeners.delete(listener);
+  };
 }
 
 export function gmPlusSoundSrc(): string {

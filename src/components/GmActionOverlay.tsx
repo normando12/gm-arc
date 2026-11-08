@@ -6,11 +6,17 @@ type Phase = "loading" | "success";
 type Props = {
   kind: Kind;
   phase: Phase | null;
-  onPlaySound?: () => void;
+  soundPlaying?: boolean;
+  onToggleSound?: () => void;
 };
 
 /** Loading circle (~2s) then comic speech-bubble success for GM / GM+. */
-export function GmActionOverlay({ kind, phase, onPlaySound }: Props) {
+export function GmActionOverlay({
+  kind,
+  phase,
+  soundPlaying = false,
+  onToggleSound,
+}: Props) {
   if (!phase) return null;
 
   const label = kind === "gmPlus" ? "GM+" : "GM";
@@ -39,16 +45,18 @@ export function GmActionOverlay({ kind, phase, onPlaySound }: Props) {
           ☀
         </span>
         <span className="gm-success-label">{label}!</span>
-        {kind === "gmPlus" && onPlaySound ? (
+        {kind === "gmPlus" && onToggleSound ? (
           <button
             type="button"
             className="gm-sound-cue"
+            aria-pressed={soundPlaying}
             onClick={(e) => {
               e.stopPropagation();
-              onPlaySound();
+              onToggleSound();
             }}
           >
-            <span aria-hidden>♪</span> Play sound
+            <span aria-hidden>{soundPlaying ? "⏸" : "♪"}</span>{" "}
+            {soundPlaying ? "Pause sound" : "Play sound"}
           </button>
         ) : null}
       </div>

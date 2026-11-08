@@ -1047,7 +1047,6 @@ a {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.28rem;
   width: 100%;
   margin-top: 0.35rem;
 }
@@ -1076,13 +1075,6 @@ a {
 .status-sound-btn:focus-visible {
   outline: 2px solid var(--arc-purple-hot);
   outline-offset: 2px;
-}
-
-.status-sound-hint {
-  font-size: 0.68rem;
-  line-height: 1.35;
-  color: var(--ink-muted);
-  max-width: 28rem;
 }
 
 .status-box--success a,
