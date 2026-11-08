@@ -16,22 +16,37 @@ export default function Home() {
       <SpaceTalkshowBackground />
 
       <header className="site-header">
-        <span className="header-network">
-          <span className="header-a" aria-hidden />
-          ARC MAINNET
-        </span>
-        <a
-          className="header-x"
-          href={GM_ARC_X_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {GM_ARC_X_MENTION}
+        <a className="header-brand" href="/" aria-label="GM ARC home">
+          <BrandMark />
         </a>
+        <div className="header-right">
+          <span className="header-network">
+            <span className="header-a" aria-hidden />
+            ARC MAINNET
+          </span>
+          <a
+            className="header-x"
+            href={GM_ARC_X_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {GM_ARC_X_MENTION}
+          </a>
+        </div>
       </header>
 
+      <section className="hero-banner" aria-label="GM ARC talk-show banner">
+        {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed decorative hero art */}
+        <img
+          className="hero-banner-img"
+          src="/talkshow-banner.png"
+          alt="GM ARC space talk-show panel — cast behind the desk with GM speech bubble and ARC NETWORK"
+        />
+        <div className="hero-banner-fade" aria-hidden />
+      </section>
+
       <main className="site-main">
-        <BrandMark />
+        <h1 className="sr-only">GM ARC</h1>
         <p className="tagline">
           Say good morning onchain. One tap a day — or send a GM+ to a fren.
         </p>
