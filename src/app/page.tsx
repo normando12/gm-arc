@@ -22,7 +22,7 @@ export default function Home() {
         {/* eslint-disable-next-line @next/next/no-img-element -- decorative hero cast strip */}
         <img
           className="hero-banner-img"
-          src="/talkshow-banner-sam-v3.jpg"
+          src="/talkshow-banner-sam-tim-v4.jpg"
           alt="GM ARC space talk-show panel — cast behind the desk with GM speech bubble and ARC NETWORK"
         />
         <div className="hero-banner-fade" aria-hidden />
