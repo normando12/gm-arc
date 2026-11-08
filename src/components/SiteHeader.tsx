@@ -1,13 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
 
 export function SiteHeader() {
   return (
     <header className="site-header">
-      <a className="header-brand" href="/" aria-label="GM ARC home">
+      <Link className="header-brand" href="/" aria-label="GM ARC home">
         <BrandMark />
-      </a>
+      </Link>
       <div className="header-right">
         <span className="header-network">
           <span className="header-a" aria-hidden />
