@@ -37,6 +37,7 @@ import {
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { GmActionOverlay } from "@/components/GmActionOverlay";
 import { SignInWithX } from "@/components/SignInWithX";
+import { playGmPlusSoundOnce, unlockGmPlusSound } from "@/lib/gmplus-sound";
 import { requestXHandleRegistration } from "@/lib/x-handle-client";
 import { IS_PRIVY_ENABLED } from "@/lib/privy";
 
@@ -91,9 +92,10 @@ export function GmConsole() {
 
   useEffect(() => {
     if (!actionPulse || actionPhase !== "success") return;
+    if (actionKind === "gmPlus") playGmPlusSoundOnce();
     const clear = window.setTimeout(() => setActionPhase(null), SUCCESS_MS);
     return () => window.clearTimeout(clear);
-  }, [actionPulse, actionPhase]);
+  }, [actionPulse, actionPhase, actionKind]);
 
   useEffect(() => {
     if (confirmed && txHash) {
@@ -194,6 +196,8 @@ export function GmConsole() {
   }
 
   async function onGmPlus() {
+    // Unlock audio on the click gesture so the success sting can play after loading.
+    unlockGmPlusSound();
     setStatus(null);
     setStatusHash(null);
     setActionPhase(null);
