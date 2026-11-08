@@ -35,12 +35,16 @@ import {
   type MockState,
 } from "@/lib/mock";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
-import { GmSuccessBurst } from "@/components/GmSuccessBurst";
+import { GmActionOverlay } from "@/components/GmActionOverlay";
 import { SignInWithX } from "@/components/SignInWithX";
 import { requestXHandleRegistration } from "@/lib/x-handle-client";
 import { IS_PRIVY_ENABLED } from "@/lib/privy";
 
 type Tab = "gm" | "gmPlus";
+type ActionPhase = "loading" | "success";
+
+const LOADING_MS = 2000;
+const SUCCESS_MS = 2600;
 
 export function GmConsole() {
   const [tab, setTab] = useState<Tab>("gm");
@@ -49,8 +53,9 @@ export function GmConsole() {
   const [now, setNow] = useState(() => Date.now());
   const [status, setStatus] = useState<string | null>(null);
   const [statusHash, setStatusHash] = useState<string | null>(null);
-  const [successKind, setSuccessKind] = useState<Tab | null>(null);
-  const [successPulse, setSuccessPulse] = useState(0);
+  const [actionKind, setActionKind] = useState<Tab>("gm");
+  const [actionPhase, setActionPhase] = useState<ActionPhase | null>(null);
+  const [actionPulse, setActionPulse] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   const { address, isConnected, chainId } = useAccount();
@@ -71,16 +76,24 @@ export function GmConsole() {
     return () => window.clearInterval(id);
   }, []);
 
-  const celebrate = useCallback((kind: Tab) => {
-    setSuccessKind(kind);
-    setSuccessPulse((n) => n + 1);
+  /** Loading circle ~2s, then speech-bubble success burst. */
+  const playSuccessSequence = useCallback((kind: Tab) => {
+    setActionKind(kind);
+    setActionPhase("loading");
+    setActionPulse((n) => n + 1);
   }, []);
 
   useEffect(() => {
-    if (!successPulse) return;
-    const id = window.setTimeout(() => setSuccessKind(null), 2600);
-    return () => window.clearTimeout(id);
-  }, [successPulse]);
+    if (!actionPulse || actionPhase !== "loading") return;
+    const toSuccess = window.setTimeout(() => setActionPhase("success"), LOADING_MS);
+    return () => window.clearTimeout(toSuccess);
+  }, [actionPulse, actionPhase]);
+
+  useEffect(() => {
+    if (!actionPulse || actionPhase !== "success") return;
+    const clear = window.setTimeout(() => setActionPhase(null), SUCCESS_MS);
+    return () => window.clearTimeout(clear);
+  }, [actionPulse, actionPhase]);
 
   useEffect(() => {
     if (confirmed && txHash) {
@@ -89,9 +102,9 @@ export function GmConsole() {
         kind === "gm" ? "GM recorded on Arc" : "GM+ sent on Arc",
       );
       setStatusHash(txHash);
-      celebrate(kind);
+      playSuccessSequence(kind);
     }
-  }, [confirmed, txHash, tab, celebrate]);
+  }, [confirmed, txHash, tab, playSuccessSequence]);
 
   const liveAccount = address;
   const mockReadyAt = mock ? mockNextGM(mock.lastGM, now) : 0;
@@ -111,13 +124,14 @@ export function GmConsole() {
 
   const readyAt = IS_MOCK_MODE ? mockReadyAt : onchainReadyAt;
   const onCooldown = readyAt > now;
-  const busy = writing || confirming || connecting;
+  const actionBusy = actionPhase === "loading";
+  const busy = writing || confirming || connecting || actionBusy;
 
   const onResetMock = useCallback(() => {
     setMock(resetMock());
     setStatus(null);
     setStatusHash(null);
-    setSuccessKind(null);
+    setActionPhase(null);
   }, []);
 
   async function onConnect() {
@@ -144,7 +158,7 @@ export function GmConsole() {
   async function onGm() {
     setStatus(null);
     setStatusHash(null);
-    setSuccessKind(null);
+    setActionPhase(null);
 
     if (IS_MOCK_MODE) {
       if (onCooldown) return;
@@ -158,7 +172,7 @@ export function GmConsole() {
       setMock(next);
       setStatus("GM recorded on Arc (mock)");
       setStatusHash(next.lastTx);
-      celebrate("gm");
+      playSuccessSequence("gm");
       return;
     }
 
@@ -182,7 +196,7 @@ export function GmConsole() {
   async function onGmPlus() {
     setStatus(null);
     setStatusHash(null);
-    setSuccessKind(null);
+    setActionPhase(null);
 
     if (!isAddress(friend)) {
       setStatus("Enter a valid Arc address");
@@ -200,7 +214,7 @@ export function GmConsole() {
       setMock(next);
       setStatus("GM+ sent on Arc (mock)");
       setStatusHash(next.lastTx);
-      celebrate("gmPlus");
+      playSuccessSequence("gmPlus");
       return;
     }
 
@@ -240,11 +254,13 @@ export function GmConsole() {
     (status!.startsWith("GM recorded") || status!.startsWith("GM+ sent"));
 
   return (
-    <section className={`console-card${successKind ? " console-card--celebrate" : ""}`}>
-      <GmSuccessBurst
-        key={successPulse}
-        kind={successKind ?? "gm"}
-        active={Boolean(successKind)}
+    <section
+      className={`console-card${actionPhase ? " console-card--celebrate" : ""}`}
+    >
+      <GmActionOverlay
+        key={actionPulse}
+        kind={actionKind}
+        phase={actionPhase}
       />
       <div className="console-top">
         <div className="console-meta">

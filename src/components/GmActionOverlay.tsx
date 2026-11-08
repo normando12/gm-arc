@@ -1,17 +1,31 @@
 "use client";
 
 type Kind = "gm" | "gmPlus";
+type Phase = "loading" | "success";
 
 type Props = {
   kind: Kind;
-  active: boolean;
+  phase: Phase | null;
 };
 
-/** Light comic speech-bubble celebration for a successful GM / GM+. */
-export function GmSuccessBurst({ kind, active }: Props) {
-  if (!active) return null;
+/** Loading circle (~2s) then comic speech-bubble success for GM / GM+. */
+export function GmActionOverlay({ kind, phase }: Props) {
+  if (!phase) return null;
 
   const label = kind === "gmPlus" ? "GM+" : "GM";
+
+  if (phase === "loading") {
+    return (
+      <div className="gm-action-overlay" role="status" aria-live="polite">
+        <div className="gm-loading">
+          <span className="gm-loading-ring" aria-hidden />
+          <span className="gm-loading-label">
+            {kind === "gmPlus" ? "Sending GM+" : "Recording GM"}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="gm-success" role="status" aria-live="polite">

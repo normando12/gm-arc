@@ -472,7 +472,65 @@ a {
     0 0 48px rgba(178, 75, 255, 0.35);
 }
 
-/* ——— GM / GM+ success speech-bubble ——— */
+/* ——— GM / GM+ loading → success ——— */
+.gm-action-overlay {
+  position: absolute;
+  left: 50%;
+  top: -0.85rem;
+  z-index: 5;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.gm-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1rem 0.7rem;
+  background: rgba(12, 4, 28, 0.88);
+  border: 1.5px solid rgba(194, 120, 255, 0.45);
+  border-radius: 1.1rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  animation: gm-loading-in 0.25s ease both;
+}
+
+.gm-loading-ring {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.18);
+  border-top-color: var(--arc-purple-hot);
+  border-right-color: #7dffa8;
+  animation: gm-spin 0.75s linear infinite;
+}
+
+.gm-loading-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+@keyframes gm-loading-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes gm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .gm-success {
   position: absolute;
   left: 50%;
