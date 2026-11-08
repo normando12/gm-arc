@@ -302,11 +302,10 @@ a {
   display: block;
   width: 100%;
   height: auto;
-  /* Match banner intrinsic ratio so desk nameplates stay in frame */
+  /* Intrinsic ratio — full L/R cast (flag + ARC NETWORK) stays in frame */
   aspect-ratio: 1280 / 423;
-  max-height: min(52vh, 560px);
-  object-fit: cover;
-  /* Anchor to desk — cover+center-42% was cropping SAM / TIMOTHY BAKER */
+  /* Avoid cover+max-height: short viewports widen the box and crop side plates */
+  object-fit: contain;
   object-position: center bottom;
   user-select: none;
   pointer-events: none;
@@ -1184,7 +1183,7 @@ a {
   }
 
   .hero-banner-img {
-    max-height: min(38vh, 280px);
+    /* Keep full width cast on small screens; natural ratio from width is already short */
     object-position: center bottom;
   }
 
