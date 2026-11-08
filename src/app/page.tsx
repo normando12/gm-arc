@@ -22,7 +22,7 @@ export default function Home() {
         {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed decorative hero art */}
         <img
           className="hero-banner-img"
-          src="/talkshow-banner-v3.png"
+          src="/talkshow-banner-clean.jpg"
           alt="GM ARC space talk-show panel — cast behind the desk with GM speech bubble and ARC NETWORK"
         />
         <div className="hero-banner-fade" aria-hidden />
