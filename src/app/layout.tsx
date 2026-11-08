@@ -1,24 +1,27 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans } from "next/font/google";
+import { Fredoka, Outfit } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const syne = Syne({
-  variable: "--font-syne",
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  weight: ["500", "600", "700"],
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "gm·arc — Tap to GM on Arc",
+  title: "GM ARC — Tap to GM on Arc",
   description:
-    "Say good morning onchain on Arc mainnet. Free daily GM, or send GM+ to a fren (0.01 tip + 1 USDC ops fee).",
+    "Say good morning onchain on Arc mainnet. Free daily GM, or send GM+ to a fren. Gm on @arc.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${syne.variable} ${dmSans.variable} antialiased`}>
+      <body className={`${fredoka.variable} ${outfit.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -1,5 +1,6 @@
-import { DawnBackground } from "@/components/DawnBackground";
+import { BrandMark } from "@/components/BrandMark";
 import { GmConsole } from "@/components/GmConsole";
+import { SpaceTalkshowBackground } from "@/components/SpaceTalkshowBackground";
 import {
   ARC_BRIDGE_URL,
   GM_PLUS_FEE_USDC,
@@ -12,14 +13,25 @@ import { GM_ARC_X_MENTION, GM_ARC_X_URL } from "@/lib/privy";
 export default function Home() {
   return (
     <div className="page">
-      <DawnBackground />
+      <SpaceTalkshowBackground />
 
       <header className="site-header">
-        <span>ARC MAINNET</span>
+        <span className="header-network">
+          <span className="header-a" aria-hidden />
+          ARC MAINNET
+        </span>
+        <a
+          className="header-x"
+          href={GM_ARC_X_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {GM_ARC_X_MENTION}
+        </a>
       </header>
 
       <main className="site-main">
-        <h1 className="brand">gm·arc</h1>
+        <BrandMark />
         <p className="tagline">
           Say good morning onchain. One tap a day — or send a GM+ to a fren.
         </p>
