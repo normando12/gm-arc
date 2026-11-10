@@ -44,6 +44,7 @@ import {
   unlockGmPlusSound,
 } from "@/lib/gmplus-sound";
 import { requestXHandleRegistration } from "@/lib/x-handle-client";
+import { notifyGmPlusConfirmed } from "@/lib/x-alerts-client";
 import { IS_PRIVY_ENABLED } from "@/lib/privy";
 
 type Tab = "gm" | "gmPlus";
@@ -113,6 +114,7 @@ export function GmConsole() {
       );
       setStatusHash(txHash);
       playSuccessSequence(kind);
+      if (kind === "gmPlus" && !IS_MOCK_MODE) notifyGmPlusConfirmed(txHash);
     }
   }, [confirmed, txHash, tab, playSuccessSequence]);
 

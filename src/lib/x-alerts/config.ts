@@ -59,6 +59,13 @@ export const xAlertsConfig = {
    */
   scanV1Topic: env("X_ALERTS_SCAN_V1") === "true",
   maxTweetsPerRun: envInt("X_ALERTS_MAX_TWEETS", 10),
+  /**
+   * Post right after a GM+ confirms (app calls /api/x-gm-alerts/instant).
+   * Set X_ALERTS_INSTANT=false to turn it off; the daily cron still runs.
+   */
+  instantEnabled: env("X_ALERTS_INSTANT") !== "false",
+  /** Instant mode ignores txs older than this (stops replaying old GM+). */
+  instantMaxAgeSeconds: envInt("X_ALERTS_INSTANT_MAX_AGE_SEC", 3_600),
   dryRun: env("X_ALERTS_DRY_RUN") === "true",
   /**
    * When true, delete Redis/local cursor+dedupe at the start of the run

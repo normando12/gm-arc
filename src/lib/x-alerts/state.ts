@@ -118,6 +118,39 @@ export async function saveAlertsState(state: AlertsState): Promise<void> {
   }
 }
 
+const CLAIM_PREFIX = "gm-arc:x-alerts:claim:";
+const CLAIM_TTL_SECONDS = 600;
+const memoryClaims = new Set<string>();
+
+/**
+ * Short-lived lock so two requests cannot tweet the same event at once.
+ * Returns true when this caller owns the event. Needs Upstash for a real
+ * cross-instance lock; otherwise falls back to a per-process set.
+ */
+export async function claimEvent(key: string): Promise<boolean> {
+  if (hasUpstash()) {
+    const result = await upstashCommand([
+      "SET",
+      `${CLAIM_PREFIX}${key}`,
+      "1",
+      "NX",
+      "EX",
+      CLAIM_TTL_SECONDS,
+    ]);
+    return result === "OK";
+  }
+  if (memoryClaims.has(key)) return false;
+  memoryClaims.add(key);
+  return true;
+}
+
+export async function releaseEvent(key: string): Promise<void> {
+  memoryClaims.delete(key);
+  if (hasUpstash()) {
+    await upstashCommand(["DEL", `${CLAIM_PREFIX}${key}`]);
+  }
+}
+
 export function eventKey(txHash: string, logIndex: number): string {
   return `${txHash.toLowerCase()}:${logIndex}`;
 }
