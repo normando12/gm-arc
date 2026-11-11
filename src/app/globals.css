@@ -650,13 +650,15 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
-  padding: 0.28rem 0.65rem;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.28rem 0.6rem;
   border: 1.5px solid #1a1028;
   border-radius: 999px;
   background: #121018;
   color: #f4ecff;
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
@@ -1185,5 +1187,58 @@ a {
 
   .console-card {
     border-radius: 1.2rem;
+  }
+}
+
+/* ——— GM+ celebration burst (coins + confetti + glow) ——— */
+.gm-burst-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.gm-burst-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 60%,
+    rgba(39, 117, 202, 0.4) 0%,
+    rgba(178, 75, 255, 0.28) 30%,
+    rgba(178, 75, 255, 0) 65%
+  );
+  opacity: 0;
+  animation: gm-burst-glow 5s ease-in-out both;
+}
+
+@keyframes gm-burst-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  10% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.55;
+    transform: scale(1.1);
+  }
+  60% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gm-burst-glow {
+    animation: none;
+    display: none;
   }
 }

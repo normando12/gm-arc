@@ -36,6 +36,7 @@ import {
 } from "@/lib/mock";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { GmActionOverlay } from "@/components/GmActionOverlay";
+import { GmPlusBurst } from "@/components/GmPlusBurst";
 import { SignInWithX } from "@/components/SignInWithX";
 import {
   playGmPlusSoundOnce,
@@ -65,6 +66,8 @@ export function GmConsole() {
   const [actionPulse, setActionPulse] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [soundPlaying, setSoundPlaying] = useState(false);
+  /** Pulse id of the GM+ celebration currently on screen (null = none). */
+  const [burstPulse, setBurstPulse] = useState<number | null>(null);
 
   const { address, isConnected, chainId } = useAccount();
   const { connect, connectors, isPending: connecting } = useConnect();
@@ -101,7 +104,10 @@ export function GmConsole() {
 
   useEffect(() => {
     if (!actionPulse || actionPhase !== "success") return;
-    if (actionKind === "gmPlus") playGmPlusSoundOnce();
+    if (actionKind === "gmPlus") {
+      playGmPlusSoundOnce();
+      setBurstPulse(actionPulse);
+    }
     const clear = window.setTimeout(() => setActionPhase(null), SUCCESS_MS);
     return () => window.clearTimeout(clear);
   }, [actionPulse, actionPhase, actionKind]);
@@ -271,15 +277,10 @@ export function GmConsole() {
     <section
       className={`console-card${actionPhase ? " console-card--celebrate" : ""}`}
     >
-      <GmActionOverlay
-        key={actionPulse}
-        kind={actionKind}
-        phase={actionPhase}
-        soundPlaying={soundPlaying}
-        onToggleSound={
-          actionKind === "gmPlus" ? toggleGmPlusSoundFromGesture : undefined
-        }
-      />
+      <GmActionOverlay key={actionPulse} kind={actionKind} phase={actionPhase} />
+      {burstPulse !== null ? (
+        <GmPlusBurst key={burstPulse} onDone={() => setBurstPulse(null)} />
+      ) : null}
       <div className="console-top">
         <div className="console-meta">
           {IS_MOCK_MODE ? (
