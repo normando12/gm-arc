@@ -18,5 +18,5 @@ export function formatAlertText(params: {
   txHash: `0x${string}`;
 }): string {
   const link = explorerTx(params.txHash);
-  return `GM sent from ${params.fromLabel} to ${params.toLabel}. Have you GM’d today?\n${link}`;
+  return `GM+ sent from ${params.fromLabel} to ${params.toLabel}. Have you said GM today? Return the kindness: gm-arc.xyz\n${link}`;
 }
