@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useAccount,
   useConnect,
@@ -68,6 +68,9 @@ export function GmConsole() {
   const [soundPlaying, setSoundPlaying] = useState(false);
   /** Pulse id of the GM+ celebration currently on screen (null = none). */
   const [burstPulse, setBurstPulse] = useState<number | null>(null);
+  /** Which action the pending tx belongs to, and the last tx already celebrated. */
+  const pendingKind = useRef<Tab>("gm");
+  const handledHash = useRef<string | null>(null);
 
   const { address, isConnected, chainId } = useAccount();
   const { connect, connectors, isPending: connecting } = useConnect();
@@ -113,8 +116,12 @@ export function GmConsole() {
   }, [actionPulse, actionPhase, actionKind]);
 
   useEffect(() => {
-    if (confirmed && txHash) {
-      const kind = tab;
+    // Celebrate each confirmed tx once, for the action that sent it (not for
+    // whichever tab is open when the receipt arrives or when the user switches
+    // tabs later).
+    if (confirmed && txHash && handledHash.current !== txHash) {
+      handledHash.current = txHash;
+      const kind = pendingKind.current;
       setStatus(
         kind === "gm" ? "GM recorded on Arc" : "GM+ sent on Arc",
       );
@@ -122,7 +129,7 @@ export function GmConsole() {
       playSuccessSequence(kind);
       if (kind === "gmPlus" && !IS_MOCK_MODE) notifyGmPlusConfirmed(txHash);
     }
-  }, [confirmed, txHash, tab, playSuccessSequence]);
+  }, [confirmed, txHash, playSuccessSequence]);
 
   const liveAccount = address;
   const mockReadyAt = mock ? mockNextGM(mock.lastGM, now) : 0;
@@ -200,6 +207,7 @@ export function GmConsole() {
     }
     try {
       await ensureArc();
+      pendingKind.current = "gm";
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: arcGmAbi,
@@ -246,6 +254,7 @@ export function GmConsole() {
       // Refresh wallet↔handle map before GM+ so cron can @mention this sender.
       if (IS_PRIVY_ENABLED) requestXHandleRegistration();
       await ensureArc();
+      pendingKind.current = "gmPlus";
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: arcGmAbi,
