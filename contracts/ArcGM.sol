@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @title ArcGM — daily GM check-in + directed GM+ on Arc (v2 fees)
+/// @title ArcGM — daily GM check-in + directed GM+ on Arc (v3 fees)
 /// @notice Basic `gm()` is free (gas only) with a 24h cooldown.
 ///         `gmPlusTo(address)` pays exact total = friend tip + owner fee (native USDC on Arc):
-///         0.01 USDC → friend, 1.0 USDC → owner (ops / X API funding).
+///         0.10 USDC → friend, 0.40 USDC → owner (ops / X API funding). Total 0.50 USDC.
 contract ArcGM {
     uint256 public constant COOLDOWN = 24 hours;
     /// @dev Native Arc USDC uses 18 decimals — `ether` unit == 1 USDC.
-    uint256 public constant FRIEND_TIP = 0.01 ether;
-    uint256 public constant OWNER_FEE = 1 ether;
+    uint256 public constant FRIEND_TIP = 0.1 ether;
+    uint256 public constant OWNER_FEE = 0.4 ether;
 
     address public immutable owner;
 
