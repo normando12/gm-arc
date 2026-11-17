@@ -1,7 +1,6 @@
-# Deploy ArcGM v3 (0.50 USDC fees)
+# Deploy ArcGM v2 (Option A fees)
 
-**Fees:** `0.50 USDC` total per GM+ → **0.10** to friend + **0.40** to owner  
-(v2 was `1.01` total: 0.01 + 1.0 — the fee constants are immutable, so a fee change = a new contract.)  
+**Fees:** `1.01 USDC` total per GM+ → **0.01** to friend + **1.0** to owner  
 **Owner (default):** `0xe8fE5893E7eeC69DF7B06787b8b25dd64CeC3773`
 
 Do **not** put `PRIVATE_KEY` in git or Vercel.
@@ -33,33 +32,25 @@ forge create contracts/ArcGM.sol:ArcGM \
 
 ## 2) Smoke
 
-1. Call `gmPlusFee()` → expect `500000000000000000` (0.5e18).  
-   `FRIEND_TIP()` → `100000000000000000` (0.1e18), `OWNER_FEE()` → `400000000000000000` (0.4e18).  
+1. Call `gmPlusFee()` → expect `1010000000000000000` (1.01e18).  
 2. Call `owner()` → `0xe8fE…3773`.  
-3. From a funded wallet, `gmPlusTo(friend)` with value `0.50` USDC; confirm friend +0.10 and owner +0.40.  
-   (Real funds on mainnet — use a friend address you control.)
+3. From a funded wallet, `gmPlusTo(friend)` with value `1.01` USDC; confirm friend +0.01 and owner +1.0.
 
 ## 3) Point the app + cron
 
-Vercel Production env — set **all of these together**, then Redeploy. The app's
-defaults in `src/lib/config.ts` are still the v2 split (0.01 + 1), so the split
-**must** be set explicitly or GM+ will send the wrong value and revert:
+Vercel Production env:
 
 ```bash
 NEXT_PUBLIC_CONTRACT_ADDRESS=<new address>
-NEXT_PUBLIC_GM_PLUS_FRIEND_TIP=0.1
-NEXT_PUBLIC_GM_PLUS_OWNER_FEE=0.4
+# optional explicit split (defaults already match Option A)
+# NEXT_PUBLIC_GM_PLUS_FRIEND_TIP=0.01
+# NEXT_PUBLIC_GM_PLUS_OWNER_FEE=1
 # NEXT_PUBLIC_GM_PLUS_OWNER=0xe8fE5893E7eeC69DF7B06787b8b25dd64CeC3773
-# If NEXT_PUBLIC_GM_PLUS_FEE exists, set it to 0.5 or delete it (it overrides the sum).
 ```
-
-Do not set these before the new contract is deployed: the old contract only accepts
-exactly 1.01 USDC, and a mismatched value makes every GM+ revert.
 
 Redeploy. X-alerts cron uses the same `NEXT_PUBLIC_CONTRACT_ADDRESS` / config default.  
 After cutover, optionally `DEL gm-arc:x-alerts:state` or set `X_ALERTS_START_BLOCK` to the deploy block so the worker does not rely on the old cursor alone.
 
 ## 4) Legacy
 
-Old contracts (v1 `0x605A1Adc…22e3` and the v2 with 1.01 USDC) stay onchain (immutable) and keep working
-at their own prices. The app stops using them once env points at v3. Per-address GM cooldown starts fresh on the new contract.
+Old contract `0x605A1Adc…22e3` stays onchain (immutable). App stops using it once env points at v2.
