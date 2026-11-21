@@ -37,6 +37,7 @@ import {
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { GmActionOverlay } from "@/components/GmActionOverlay";
 import { GmPlusBurst } from "@/components/GmPlusBurst";
+import { POOL_REFRESH_EVENT } from "@/components/PoolStats";
 import { SignInWithX } from "@/components/SignInWithX";
 import {
   playGmPlusSoundOnce,
@@ -127,7 +128,11 @@ export function GmConsole() {
       );
       setStatusHash(txHash);
       playSuccessSequence(kind);
-      if (kind === "gmPlus" && !IS_MOCK_MODE) notifyGmPlusConfirmed(txHash);
+      if (kind === "gmPlus" && !IS_MOCK_MODE) {
+        notifyGmPlusConfirmed(txHash);
+        // Let the community pool counter pick up the new GM+.
+        window.dispatchEvent(new Event(POOL_REFRESH_EVENT));
+      }
     }
   }, [confirmed, txHash, playSuccessSequence]);
 

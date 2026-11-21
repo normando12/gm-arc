@@ -1,5 +1,6 @@
 import { FloatingSideBubbles } from "@/components/FloatingSideBubbles";
 import { GmConsole } from "@/components/GmConsole";
+import { PoolStats } from "@/components/PoolStats";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SpaceTalkshowBackground } from "@/components/SpaceTalkshowBackground";
 import {
@@ -42,6 +43,7 @@ export default function Home() {
           <FloatingSideBubbles />
           <GmConsole />
         </div>
+        <PoolStats />
         <div className="after-console">
           <a
             className="bridge-cta"

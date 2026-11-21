@@ -20,7 +20,7 @@ function localStatePath(): string {
   return path.join(process.cwd(), ".data", "x-gm-alerts.json");
 }
 
-async function upstashCommand(command: unknown[]): Promise<unknown> {
+export async function upstashCommand(command: unknown[]): Promise<unknown> {
   const res = await fetch(xAlertsConfig.upstashUrl, {
     method: "POST",
     headers: {
