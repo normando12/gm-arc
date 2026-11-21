@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { explorerAddress } from "@/lib/config";
 import {
   POOL_ADDRESS,
+  POOL_DONATION_EVERY_GM_PLUS,
   POOL_PER_GM_PLUS_USDC,
   type PoolStatsResponse,
 } from "@/lib/pool/config";
@@ -141,7 +142,7 @@ export function PoolStats() {
       <p className="pool-note">
         {catchingUp
           ? "Catching up with the latest blocks — the count may be a little behind."
-          : "Counts GM+ sent since this counter started. The estimate is GM+ times the amount per GM+."}
+          : `Estimated pool = GM+ × ${POOL_PER_GM_PLUS_USDC.toFixed(2)} USDC. The GM ARC team moves it to the pool wallet manually, and every ${POOL_DONATION_EVERY_GM_PLUS} GM+ the pool balance is used to buy basic food baskets for families in need.`}
       </p>
     </section>
   );

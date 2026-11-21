@@ -14,6 +14,9 @@ const rawPerGm = Number.parseFloat(
 export const POOL_PER_GM_PLUS_USDC =
   Number.isFinite(rawPerGm) && rawPerGm >= 0 ? rawPerGm : 0.8;
 
+/** The pool balance goes to basic food baskets every this many GM+ (shown on the site). */
+export const POOL_DONATION_EVERY_GM_PLUS = 40;
+
 const rawAddress = process.env.NEXT_PUBLIC_POOL_ADDRESS?.trim() || "";
 
 export const POOL_ADDRESS: `0x${string}` | null = isAddress(rawAddress)
