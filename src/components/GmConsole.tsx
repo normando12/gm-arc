@@ -38,6 +38,7 @@ import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { GmActionOverlay } from "@/components/GmActionOverlay";
 import { GmPlusBurst } from "@/components/GmPlusBurst";
 import { POOL_REFRESH_EVENT } from "@/components/PoolStats";
+import { splitOwnerFee } from "@/lib/pool/config";
 import { SignInWithX } from "@/components/SignInWithX";
 import {
   playGmPlusSoundOnce,
@@ -51,6 +52,11 @@ import { IS_PRIVY_ENABLED } from "@/lib/privy";
 
 type Tab = "gm" | "gmPlus";
 type ActionPhase = "loading" | "success";
+
+/** Owner fee split shown to users: pool share first, the rest covers operations. */
+const { pool: POOL_SHARE_USDC, ops: OPS_SHARE_USDC } = splitOwnerFee(
+  GM_PLUS_OWNER_FEE_USDC,
+);
 
 const LOADING_MS = 2000;
 const SUCCESS_MS = 2600;
@@ -355,9 +361,10 @@ export function GmConsole() {
       ) : (
         <div className="tab-panel">
           <p className="panel-copy">
-            Send a premium GM to a fren. Total {GM_PLUS_FEE_USDC} USDC + gas:{" "}
-            {GM_PLUS_FRIEND_TIP_USDC} to your fren, {GM_PLUS_OWNER_FEE_USDC} ops
-            fee. No daily cooldown.
+            Send a GM+ to a fren and help families in need. Total{" "}
+            {GM_PLUS_FEE_USDC} USDC + gas: {GM_PLUS_FRIEND_TIP_USDC} to your
+            fren, {POOL_SHARE_USDC.toFixed(2)} to the community pool,{" "}
+            {OPS_SHARE_USDC.toFixed(2)} for ops. No daily cooldown.
           </p>
           <label className="field">
             <span>Friend address</span>

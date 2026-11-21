@@ -14,6 +14,16 @@ const rawPerGm = Number.parseFloat(
 export const POOL_PER_GM_PLUS_USDC =
   Number.isFinite(rawPerGm) && rawPerGm >= 0 ? rawPerGm : 0.8;
 
+/**
+ * How the owner fee is shown to users: the pool share first (capped by the fee),
+ * the rest covers operations.
+ */
+export function splitOwnerFee(ownerFeeUsdc: string): { pool: number; ops: number } {
+  const fee = Number.parseFloat(ownerFeeUsdc) || 0;
+  const pool = Math.min(POOL_PER_GM_PLUS_USDC, fee);
+  return { pool, ops: Math.max(0, fee - pool) };
+}
+
 /** The pool balance goes to basic food baskets every this many GM+ (shown on the site). */
 export const POOL_DONATION_EVERY_GM_PLUS = 40;
 

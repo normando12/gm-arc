@@ -10,9 +10,11 @@ import {
   GM_PLUS_OWNER_FEE_USDC,
   IS_MOCK_MODE,
 } from "@/lib/config";
+import { splitOwnerFee } from "@/lib/pool/config";
 import { GM_ARC_X_MENTION, GM_ARC_X_URL } from "@/lib/privy";
 
 export default function Home() {
+  const ownerSplit = splitOwnerFee(GM_PLUS_OWNER_FEE_USDC);
   return (
     <div className="page">
       <SpaceTalkshowBackground />
@@ -36,7 +38,7 @@ export default function Home() {
         </p>
         <p className="status-line">
           Free GM · GM+ {GM_PLUS_FEE_USDC} USDC ({GM_PLUS_FRIEND_TIP_USDC} tip +{" "}
-          {GM_PLUS_OWNER_FEE_USDC} ops)
+          {ownerSplit.pool.toFixed(2)} pool + {ownerSplit.ops.toFixed(2)} ops)
           {IS_MOCK_MODE ? " · running in mock mode" : ""}
         </p>
         <div className="console-stage">
